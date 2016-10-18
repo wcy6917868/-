@@ -1,0 +1,10 @@
+target'Car Odyssey'do
+pod'AMap2DMap'
+pod'AMapSearch'
+pod'AMapLocation'
+pod'MMDrawerController','~> 0.5.7'
+pod'AFNetworking'
+pod'MBProgressHUD'
+pod'IQKeyboardManager'
+pod'JSONModel'
+end

@@ -7,11 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <MMDrawerController.h>
+#import "LeftSliderViewController.h"
+#import "MapViewController.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
-
+@property (nonatomic,strong)MMDrawerController *drawerController;
 
 @end
 

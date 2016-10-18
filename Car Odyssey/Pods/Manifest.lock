@@ -1,0 +1,63 @@
+PODS:
+  - AFNetworking (3.1.0):
+    - AFNetworking/NSURLSession (= 3.1.0)
+    - AFNetworking/Reachability (= 3.1.0)
+    - AFNetworking/Security (= 3.1.0)
+    - AFNetworking/Serialization (= 3.1.0)
+    - AFNetworking/UIKit (= 3.1.0)
+  - AFNetworking/NSURLSession (3.1.0):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.1.0)
+  - AFNetworking/Security (3.1.0)
+  - AFNetworking/Serialization (3.1.0)
+  - AFNetworking/UIKit (3.1.0):
+    - AFNetworking/NSURLSession
+  - AMap2DMap (4.1.0):
+    - AMapFoundation (~> 1.0)
+  - AMapFoundation (1.1.0)
+  - AMapLocation (2.0.0):
+    - AMapFoundation (~> 1.0)
+  - AMapSearch (4.1.0):
+    - AMapFoundation (~> 1.0)
+  - IQKeyboardManager (4.0.4)
+  - JSONModel (1.2.0)
+  - MBProgressHUD (0.9.2)
+  - MMDrawerController (0.5.7):
+    - MMDrawerController/Core (= 0.5.7)
+    - MMDrawerController/MMDrawerBarButtonItem (= 0.5.7)
+    - MMDrawerController/MMDrawerVisualStates (= 0.5.7)
+    - MMDrawerController/Subclass (= 0.5.7)
+  - MMDrawerController/Core (0.5.7)
+  - MMDrawerController/MMDrawerBarButtonItem (0.5.7):
+    - MMDrawerController/Core
+  - MMDrawerController/MMDrawerVisualStates (0.5.7):
+    - MMDrawerController/Core
+  - MMDrawerController/Subclass (0.5.7):
+    - MMDrawerController/Core
+
+DEPENDENCIES:
+  - AFNetworking
+  - AMap2DMap
+  - AMapLocation
+  - AMapSearch
+  - IQKeyboardManager
+  - JSONModel
+  - MBProgressHUD
+  - MMDrawerController (~> 0.5.7)
+
+SPEC CHECKSUMS:
+  AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  AMap2DMap: 0950d46480e8fdb38a5170450866aecc6dc8c387
+  AMapFoundation: 15db20567e6512422a086a01b42a88b145bc2500
+  AMapLocation: 40141a31e7c584e59d590079eb8e565a90ecdf4d
+  AMapSearch: cb4722480d2d4331a032d43bd1070ed0fa55dac9
+  IQKeyboardManager: 4a6f83b540283c2645aaeba2bd8dc0f09b5c77f8
+  JSONModel: 12523685c4b623553ccf844bbbf7007624317b2c
+  MBProgressHUD: 1569cf7ace17a8bac47aabfbb8580a49690386d1
+  MMDrawerController: 7a4cf8e25596bf2434e03ce50d22a8608ddee6a1
+
+PODFILE CHECKSUM: 2ea4f0e9ebae183224fbc7981a56c13b8f56868f
+
+COCOAPODS: 1.0.1
