@@ -44,7 +44,7 @@
 {
     self.view.backgroundColor = RGB(238, 238, 238);
     UIImageView *imageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 80*SCREENW_RATE, 80*SCREENW_RATE)];
-    imageV.image = [UIImage imageNamed:@"logo3@2x"];
+    imageV.image = [UIImage imageNamed:@"logo3"];
     imageV.center = CGPointMake(187.5*SCREENW_RATE,180*SCREENW_RATE);
     [self.view addSubview:imageV];
     

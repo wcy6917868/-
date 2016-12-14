@@ -9,7 +9,7 @@
 #import "PostDrivingLicenceViewController.h"
 #import "Ultitly.h"
 #import "NetManager.h"
-#define postImageAPI @"http://139.196.179.91/carmanl/public/common/upload"
+#define postImageAPI @"http://115.29.246.88:9999/common/upload"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -60,7 +60,14 @@
     [view addSubview:label1];
     
     driveImage1 = [[UIImageView alloc]initWithFrame:CGRectMake(168*SCREENW_RATE, 15 *SCREENW_RATE, 160*SCREENW_RATE, 90*SCREENW_RATE)];
-    driveImage1.image = [UIImage imageNamed:@"polaroid@2x"];
+    if ([Ultitly shareInstance].driverA == nil)
+    {
+        driveImage1.image = [UIImage imageNamed:@"polaroid"];
+    }
+    else
+    {
+        driveImage1.image = [Ultitly shareInstance].driverA;
+    }
     driveImage1.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(postDrive)];
     [driveImage1 addGestureRecognizer:tap];
@@ -78,7 +85,15 @@
     [view1 addSubview:label2];
     
     driveImage2 = [[UIImageView alloc]initWithFrame:CGRectMake(168*SCREENW_RATE, 15 *SCREENW_RATE, 160*SCREENW_RATE, 90*SCREENW_RATE)];
-    driveImage2.image = [UIImage imageNamed:@"polaroid@2x"];
+    if ([Ultitly shareInstance].driverB == nil)
+    {
+       driveImage2.image = [UIImage imageNamed:@"polaroid"];
+    }
+    else
+    {
+        driveImage2.image = [Ultitly shareInstance].driverB;
+    }
+    
     driveImage2.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap1 = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(postDriveL2)];
     [driveImage2 addGestureRecognizer:tap1];
@@ -169,12 +184,23 @@
     if (picker == picker1) {
         [picker dismissViewControllerAnimated:YES completion:nil];
         UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+        [Ultitly shareInstance].driverA = image;
         NSData *imageData = UIImagePNGRepresentation(image);
         driveImage1.image = image;
         [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data)
         {
-            NSLog(@"%@",data);
-             [Ultitly shareInstance].driver_a = data[@"data"][@"path"];
+            if ([data[@"status"]isEqualToString:@"9000"])
+            {
+            [Ultitly shareInstance].driver_a = data[@"data"][@"path"];
+
+            }
+            else if ([data[@"status"]isEqualToString:@"1000"])
+            {
+                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                [alertC addAction:action];
+                [self presentViewController:alertC animated:YES completion:nil];
+            }
             
         }
         andFailedBlock:^(NSError *error)
@@ -187,12 +213,22 @@
     {
         [picker dismissViewControllerAnimated:YES completion:nil];
         UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+        [Ultitly shareInstance].driverB = image;
         NSData *imageData = UIImagePNGRepresentation(image);
         driveImage2.image = image;
         [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data)
          {
-             NSLog(@"%@",data);
-              [Ultitly shareInstance].driver_b = data[@"data"][@"path"];
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                  [Ultitly shareInstance].driver_b = data[@"data"][@"path"];
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
          }
          andFailedBlock:^(NSError *error)
          {
@@ -205,7 +241,7 @@
 {
     if ([Ultitly shareInstance].driver_a != nil && [Ultitly shareInstance].driver_b != nil)
     {
-        _block(@"gou@2x");
+        _block(@"gou");
         [self.navigationController popViewControllerAnimated:YES];
     }
     else

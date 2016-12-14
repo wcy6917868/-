@@ -42,12 +42,12 @@
 - (void)configUI
 {
     UIImageView *backGroundImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, SCREENH - 210*SCREENW_RATE, SCREENW, 210*SCREENW_RATE)];
-    backGroundImage.image = [UIImage imageNamed:@"bg_guanyu@2x"];
+    backGroundImage.image = [UIImage imageNamed:@"bg_guanyu"];
     [self.view addSubview:backGroundImage];
     
     UIImageView *carImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 80*SCREENW_RATE, 80*SCREENW_RATE)];
     carImage.center = CGPointMake(SCREENW/2, 159*SCREENW_RATE);
-    carImage.image = [UIImage imageNamed:@"logo3@2x"];
+    carImage.image = [UIImage imageNamed:@"logo3"];
     [self.view insertSubview:carImage aboveSubview:backGroundImage];
     
     UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(carImage.frame), SCREENW, 51*SCREENW_RATE)];

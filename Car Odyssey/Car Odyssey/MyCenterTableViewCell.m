@@ -29,9 +29,11 @@
         
         _integralBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         _integralBtn.frame = CGRectMake(SCREENW - 164*SCREENW_RATE, 12*SCREENW_RATE, 40*SCREENW_RATE, 22*SCREENW_RATE);
-        [_integralBtn setBackgroundImage:[UIImage imageNamed:@"xiaoxishuliang@2x"] forState:UIControlStateNormal];
-        [_integralBtn setTitle:@"85" forState:UIControlStateNormal];
+        [_integralBtn setBackgroundImage:[UIImage imageNamed:@"xiaoxishuliang"] forState:UIControlStateNormal];
         [_integralBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *pointNum = [ud objectForKey:@"accountintegral"];
+        [_integralBtn setTitle:[NSString stringWithFormat:@"%@",pointNum] forState:UIControlStateNormal];
         _integralBtn.titleLabel.font = [UIFont systemFontOfSize:14];
         _integralBtn.hidden = YES;
         [self.contentView addSubview:_integralBtn];

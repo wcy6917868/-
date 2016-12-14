@@ -14,7 +14,7 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define ActivityInfoAPI @"http://139.196.179.91/carmanl/public/msgbox/actmsg"
+#define ActivityInfoAPI @"http://115.29.246.88:9999/msgbox/actmsg"
 
 @interface ConmentViewController ()<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic,strong)UITableView *tableV;
@@ -46,16 +46,29 @@
 
 - (void)getNetData
 {
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:@"0" forKey:@"id"];
+    [paraDic setObject:userid forKey:@"id"];
     [paraDic setObject:@"1" forKey:@"page"];
     [[NetManager shareManager]requestUrlPost:ActivityInfoAPI andParameter:paraDic withSuccessBlock:^(id data)
     {
-        NSArray *tempArr = data[@"data"][@"msg"];
-        for (NSDictionary *dic in tempArr)
+        if ([data[@"status"]isEqualToString:@"9000"])
         {
-            [_dataArray addObject:dic];
+            NSArray *tempArr = data[@"data"][@"msg"];
+            for (NSDictionary *dic in tempArr)
+            {
+                [_dataArray addObject:dic];
+            }
         }
+        else if ([data[@"status"]isEqualToString:@"1000"])
+        {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+            [alertC addAction:action];
+            [self presentViewController:alertC animated:YES completion:nil];
+        }
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.tableV reloadData];
         });

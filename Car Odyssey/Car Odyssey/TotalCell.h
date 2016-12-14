@@ -9,5 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface TotalCell : UITableViewCell
+@property (nonatomic,strong)UILabel *titleL;
+@property (nonatomic,strong)UITextField *moneyTF;
 
 @end

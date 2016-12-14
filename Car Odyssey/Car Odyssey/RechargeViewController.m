@@ -13,7 +13,7 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define RechargeAPI @"http://139.196.179.91/carmanl/public/center/recharge"
+#define RechargeAPI @"http://115.29.246.88:9999/center/recharge"
 
 @interface RechargeViewController ()<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic,strong)UITableView *tableV;
@@ -64,21 +64,35 @@
 
 - (void)configUI
 {
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
     _dataArr = [NSMutableArray array];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:@"1" forKey:@"id"];
+    [paraDic setObject:userid forKey:@"id"];
     [paraDic setObject:@"0" forKey:@"page"];
     [[NetManager shareManager]requestUrlPost:RechargeAPI andParameter:paraDic withSuccessBlock:^(id data)
     {
-        NSLog(@"%@",data);
-        NSArray *tempArr = data[@"data"][@"record"];
-        for (NSDictionary *dic in tempArr)
+        if ([data[@"status"]isEqualToString:@"9000"])
         {
-            [_dataArr addObject:dic];
+            NSLog(@"%@",data);
+            NSArray *tempArr = data[@"data"][@"record"];
+            for (NSDictionary *dic in tempArr)
+            {
+                [_dataArr addObject:dic];
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.tableV reloadData];
+            });
         }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.tableV reloadData];
-        });
+        else if ([data[@"status"]isEqualToString:@"1000"])
+        {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+            [alertC addAction:action];
+            [self presentViewController:alertC animated:YES completion:nil];
+        }
+        
+        
     }
     andFailedBlock:^(NSError *error)
     {

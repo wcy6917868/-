@@ -9,5 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @interface ShowPriceViewController : UIViewController
+@property (nonatomic,strong)void (^block)(NSString *);
+@property (nonatomic,copy)NSString *mileFare;
+@property (nonatomic,copy)NSString *orderID;
+
+- (void)configUI;
 
 @end

@@ -52,7 +52,7 @@
     
     UIImageView *bellPic = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 44*SCREENW_RATE, 44*SCREENW_RATE)];
     bellPic.center = CGPointMake(37*SCREENW_RATE, CGRectGetMidY(systemV.bounds));
-    bellPic.image = [UIImage imageNamed:@"xtxx0@2x"];
+    bellPic.image = [UIImage imageNamed:@"xtxx0"];
     [systemV addSubview: bellPic];
     
     UILabel *textL = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(bellPic.frame)+15*SCREENW_RATE, 18*SCREENW_RATE, 70*SCREENW_RATE, 26*SCREENW_RATE)];
@@ -61,14 +61,10 @@
     textL.text = @"系统消息";
     [systemV addSubview:textL];
     
-    UIImageView *redV = [[UIImageView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(textL.frame)+5*SCREENW_RATE, textL.frame.origin.y+7*SCREENW_RATE, 10*SCREENW_RATE, 10*SCREENW_RATE)];
-    redV.image  = [UIImage imageNamed:@"red0@2x"];
-    [systemV addSubview: redV];
-    
-    UILabel *textL1 = [[UILabel alloc]initWithFrame:CGRectMake(textL.frame.origin.x, CGRectGetMaxY(textL.frame)*SCREENW_RATE, 240*SCREENW_RATE, 18*SCREENW_RATE)];
+    UILabel *textL1 = [[UILabel alloc]initWithFrame:CGRectMake(textL.frame.origin.x, CGRectGetMaxY(textL.frame)+3*SCREENW_RATE, 240*SCREENW_RATE, 18*SCREENW_RATE)];
     textL1.font = [UIFont systemFontOfSize:12*SCREENW_RATE];
     textL1.textColor = RGB(136, 136, 136);
-    textL1.text = @"恭喜你成为优品的成员,我们将送您一份大礼";
+    textL1.text = @"暂无新消息";
     [systemV addSubview:textL1];
     
     UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(systemV.frame), SCREENW, 1*SCREENW_RATE)];
@@ -84,7 +80,7 @@
     
     UIImageView *conmentPic = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 44*SCREENW_RATE, 44*SCREENW_RATE)];
     conmentPic.center = CGPointMake(37*SCREENW_RATE, CGRectGetMidY(conmentV.bounds));
-    conmentPic.image = [UIImage imageNamed:@"hdxx0@2x"];
+    conmentPic.image = [UIImage imageNamed:@"hdxx0"];
     [conmentV addSubview: conmentPic];
     
     UILabel *textL2 = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(conmentPic.frame)+15*SCREENW_RATE, 18*SCREENW_RATE, 70*SCREENW_RATE, 26*SCREENW_RATE)];

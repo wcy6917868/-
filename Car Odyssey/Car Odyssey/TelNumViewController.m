@@ -53,13 +53,15 @@
 {
     UIImageView *imageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 44*SCREENW_RATE, 44*SCREENW_RATE)];
     imageV.center = CGPointMake(SCREENW/2, 104*SCREENW_RATE);
-    imageV.image = [UIImage imageNamed:@"sjh_dq@2x"];
+    imageV.image = [UIImage imageNamed:@"sjh_dq"];
     [self.view addSubview:imageV];
     
     UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(imageV.frame)+12*SCREENW_RATE, SCREENW, 31*SCREENW_RATE)];
     label.textColor = RGB(34, 34, 34);
     label.font = [UIFont systemFontOfSize:16];
-    label.text = [NSString stringWithFormat:@"您当前手机号为%@",self.TelStr];
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *mobile = [ud objectForKey:@"mobile"];
+    label.text = [NSString stringWithFormat:@"您当前手机号为%@",mobile];
     label.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:label];
     

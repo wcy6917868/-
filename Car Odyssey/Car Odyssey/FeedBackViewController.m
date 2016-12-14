@@ -13,15 +13,17 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define feedBackAPI @"http://139.196.179.91/carmanl/public/center/feedback"
+#define feedBackAPI @"http://115.29.246.88:9999/center/feedback"
+#define postImageAPI @"http://115.29.246.88:9999/common/upload"
 
-@interface FeedBackViewController ()<UITextViewDelegate>
+@interface FeedBackViewController ()<UITextViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate>
 {
     UILabel *placeholderL;
     UITextView *textV;
     UITextField *telNumTF;
+    UIButton *addPBtn;
 }
-
+@property (nonatomic,copy)NSString *feedImgStr;
 @end
 
 @implementation FeedBackViewController
@@ -69,9 +71,10 @@
     [txView addSubview:textV];
     [txView addSubview:placeholderL];
     
-    UIButton *addPBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    addPBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     addPBtn.frame = CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(textV.frame)*SCREENW_RATE, 50*SCREENW_RATE, 50*SCREENW_RATE);
-    [addPBtn setBackgroundImage:[UIImage imageNamed:@"tianjiagengduo@2x"] forState:UIControlStateNormal];
+    [addPBtn setBackgroundImage:[UIImage imageNamed:@"tianjiagengduo"] forState:UIControlStateNormal];
+    [addPBtn addTarget:self action:@selector(feedPic) forControlEvents:UIControlEventTouchUpInside];
     [txView addSubview:addPBtn];
     
     telNumTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(txView.frame)+10*SCREENW_RATE, 345*SCREENW_RATE, 45*SCREENW_RATE)];
@@ -85,13 +88,13 @@
     [telNumTF setAttributedPlaceholder:[[NSAttributedString alloc]initWithString:@"填写您的手机号,方便我们更快向您反馈哦!" attributes:@{NSForegroundColorAttributeName:RGB(170, 170, 170)}]];
     [self.view addSubview:telNumTF];
     
-    UIButton *submitBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+   UIButton *submitBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     submitBtn.tag = 100;
     submitBtn.frame = CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(telNumTF.frame)+35*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE);
     [submitBtn setBackgroundColor:RGB(220,220,220)];
     [submitBtn setTitle:@"提交反馈" forState:UIControlStateNormal];
     [submitBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-    [submitBtn addTarget:self action:@selector(feedBack) forControlEvents:UIControlEventTouchUpInside];
+    [submitBtn addTarget:self action:@selector(feedBack:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:submitBtn];
     
 }
@@ -108,59 +111,140 @@
 }
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
-   
     if (textView.text.length == 0)
     {
         placeholderL.text = @"感谢反馈,请填写您的问题或意见...";
-     
     }
     else
     {
         placeholderL.text = @"";
-        
+    }
+}
+- (void)textViewDidChange:(UITextView *)textView
+{
+    UIButton *btn = [self.view viewWithTag:100];
+    if (textV.text.length == 0)
+    {
+        btn.backgroundColor = RGB(220, 220,220);
+        btn.userInteractionEnabled = NO;
+    }
+    else
+    {
+        btn.backgroundColor = RGB(37, 155, 255);
+        btn.userInteractionEnabled = YES;
     }
     
 }
 
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+- (void)feedBack:(UIButton *)selectedBtn
 {
-     UIButton *btn = [self.view viewWithTag:100];
-    if (textV.text.length == 1)
+    if (telNumTF.text.length != 0)
     {
-       
-        btn.backgroundColor = RGB(220, 220,220);
-        btn.enabled = NO;
-        return YES;
+        selectedBtn.userInteractionEnabled = NO;
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *userid = [ud objectForKey:@"userid"];
+        NSString *driverName = [ud objectForKey:@"name"];
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        [paraDic setObject:userid forKey:@"id"];
+        [paraDic setObject:textV.text forKey:@"content"];
+        [paraDic setObject:telNumTF.text forKey:@"mobile"];
+        [paraDic setObject:driverName forKey:@"name"];
+        if (_feedImgStr != nil)
+        {
+            [paraDic setObject:_feedImgStr forKey:@"image"];
+        }
+        [[NetManager shareManager]requestUrlPost:feedBackAPI andParameter:paraDic withSuccessBlock:^(id data)
+         {
+             selectedBtn.userInteractionEnabled = YES;
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"反馈成功,感谢您的建议" preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleDefault handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
+         }
+        andFailedBlock:^(NSError *error)
+         {
+             NSLog(@"%@",error);
+             selectedBtn.userInteractionEnabled = YES;
+         }];
 
-    }else if (textV.text.length > 1)
-    {
-        btn.backgroundColor = RGB(37, 155, 255);
-        btn.enabled = YES;
-        return YES;
     }
-    return YES;
-}
-
-- (void)feedBack
-{
-    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:[Ultitly shareInstance].id forKey:@"id"];
-    [paraDic setObject:textV.text forKey:@"content"];
-    [paraDic setObject:@"" forKey:@"image"];
-    [paraDic setObject:telNumTF.text forKey:@"mobile"];
-    [[NetManager shareManager]requestUrlPost:feedBackAPI andParameter:paraDic withSuccessBlock:^(id data)
+    else
     {
-        NSLog(@"%@",data);
-        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"反馈成功,感谢您的建议" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleDefault handler:nil];
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"请填写手机号码" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
         [alertC addAction:action];
         [self presentViewController:alertC animated:YES completion:nil];
+
     }
-    andFailedBlock:^(NSError *error)
-    {
+}
+
+- (void)feedPic
+{
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择图片获取方式" message:nil preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"相机" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])return;
+        UIImagePickerController *imagePicker = [[UIImagePickerController alloc]init];
+        imagePicker.delegate = self;
+        imagePicker.sourceType = UIImagePickerControllerSourceTypeCamera;
+        imagePicker.allowsEditing = YES;
+        [self presentViewController:imagePicker animated:YES completion:nil];
+    }];
+    UIAlertAction *action2 = [UIAlertAction actionWithTitle:@"相册" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        //判断是否有摄像头
+        if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])return;
+        UIImagePickerController *imagePicker = [[UIImagePickerController alloc]init];
+        imagePicker.delegate = self;
+        imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        imagePicker.allowsEditing = YES;
+        [self presentViewController:imagePicker animated:YES completion:nil];
         
     }];
+    UIAlertAction *action3 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+    [alert addAction:action1];
+    [alert addAction:action2];
+    [alert addAction:action3];
+    [self presentViewController:alert animated:YES completion:nil];
 }
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(nonnull NSDictionary<NSString *,id> *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    [addPBtn setBackgroundImage:image forState:UIControlStateNormal];
+    NSData *imageData = UIImagePNGRepresentation(image);
+    [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data) {
+        if ([data[@"status"]isEqualToString:@"9000"])
+        {
+            //NSLog(@"%@",data);
+            _feedImgStr = data[@"data"][@"path"];
+        }
+        
+        else if ([data[@"status"]isEqualToString:@"1000"])
+        {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+            [alertC addAction:action];
+            [self presentViewController:alertC animated:YES completion:nil];
+        }
+        
+    }
+     
+   andFailedBlock:^(NSError *error) {
+            NSLog(@"%@",error);
+                                   }];
+    
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

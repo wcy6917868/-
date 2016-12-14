@@ -12,5 +12,4 @@
 @property (nonatomic,strong)UILabel *titleL;
 @property (nonatomic,strong)UILabel *dateL;
 @property (nonatomic,strong)UILabel *conmentL;
-
 @end

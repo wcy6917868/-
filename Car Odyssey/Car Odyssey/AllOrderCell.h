@@ -7,7 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "OrderModel.h"
 
 @interface AllOrderCell : UITableViewCell
+
+@property (nonatomic,strong)UILabel *timeL;
+@property (nonatomic,strong)UILabel *status;
+@property (nonatomic,strong)UILabel *shangCheL;
+@property (nonatomic,strong)UILabel *xiaCheL;
+@property (nonatomic,strong)OrderModel *model;
 
 @end

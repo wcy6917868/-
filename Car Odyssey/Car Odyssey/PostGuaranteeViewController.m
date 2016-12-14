@@ -9,7 +9,7 @@
 #import "PostGuaranteeViewController.h"
 #import "NetManager.h"
 #import "Ultitly.h"
-#define postImageAPI @"http://139.196.179.91/carmanl/public/common/upload"
+#define postImageAPI @"http://115.29.246.88:9999/common/upload"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -58,14 +58,21 @@
     [view addSubview:label1];
     
     guaranteeV = [[UIImageView alloc]initWithFrame:CGRectMake(168*SCREENW_RATE, 15 *SCREENW_RATE, 160*SCREENW_RATE, 90*SCREENW_RATE)];
-    guaranteeV.image = [UIImage imageNamed:@"polaroid@2x"];
+    if ([Ultitly shareInstance].policyImg == nil)
+    {
+        guaranteeV.image = [UIImage imageNamed:@"polaroid"];
+    }
+    else
+    {
+        guaranteeV.image = [Ultitly shareInstance].policyImg;
+    }
     guaranteeV.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(postGuanratee)];
     [guaranteeV addGestureRecognizer:tap];
     [view addSubview:guaranteeV];
     [self.view addSubview:view];
     
-    UILabel *noticeL = [[UILabel alloc]initWithFrame:CGRectMake(21*SCREENW_RATE, CGRectGetMaxY(view.frame)+10, 335*SCREENW_RATE, 20*SCREENW_RATE)];
+    UILabel *noticeL = [[UILabel alloc]initWithFrame:CGRectMake(21*SCREENW_RATE, CGRectGetMaxY(view.frame)+10*SCREENW_RATE, 335*SCREENW_RATE, 20*SCREENW_RATE)];
     noticeL.text = @"文件尺寸最大不超过2M,照片支持Jpg/png等常规格式";
     noticeL.font = [UIFont systemFontOfSize:12*SCREENW_RATE];
     noticeL.textColor = RGB(136, 136, 136);
@@ -135,12 +142,23 @@
 {
     [picker dismissViewControllerAnimated:YES completion:nil];
     UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    [Ultitly shareInstance].policyImg = image;
     NSData *imageData = UIImagePNGRepresentation(image);
     guaranteeV.image = image ;
     [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data)
      {
-         NSLog(@"%@",data);
-         [Ultitly shareInstance].policy = data[@"data"][@"path"];
+         if ([data[@"status"]isEqualToString:@"9000"])
+         {
+             [Ultitly shareInstance].policy = data[@"data"][@"path"];
+         }
+         else if ([data[@"status"]isEqualToString:@"1000"])
+         {
+             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+             [alertC addAction:action];
+             [self presentViewController:alertC animated:YES completion:nil];
+         }
+         
      }
         andFailedBlock:^(NSError *error)
      {

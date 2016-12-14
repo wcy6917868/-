@@ -9,8 +9,10 @@
 #import "MyWalletViewController.h"
 #import "RechargeViewController.h"
 #import "WithDrawViewController.h"
+#import "TopUpViewController.h"
+#import "TiXianViewController.h"
 #import "NetManager.h"
-#define DepositAPI @"http://139.196.179.91/carmanl/public/center/deposit"
+#define DepositAPI @"http://115.29.246.88:9999/center/deposit"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -59,18 +61,20 @@
 - (void)configUI
 {
     UIImageView *headImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 64, SCREENW, 151*SCREENW_RATE)];
-    headImage.image = [UIImage imageNamed:@"bg_wodeqianbao@2x"];
+    headImage.image = [UIImage imageNamed:@"bg_wodeqianbao"];
     [self.view addSubview:headImage];
     
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *walletMoney = [ud objectForKey:@"accountmoney"];
     walletNumL = [[UILabel alloc]initWithFrame:CGRectMake(0, 64, SCREENW, 46*SCREENW_RATE)];
     walletNumL.center = CGPointMake(SCREENW/2, 104*SCREENW_RATE);
     walletNumL.textAlignment = NSTextAlignmentCenter;
     walletNumL.textColor = RGB(255, 255, 255);
-    walletNumL.text = @"0";
+    walletNumL.text = walletMoney;
     walletNumL.font = [UIFont systemFontOfSize:31*SCREENW_RATE];
     [self.view addSubview:walletNumL];
     
-    UILabel *remainL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(walletNumL.frame), SCREENW, 20*SCREENW_RATE)];
+     UILabel *remainL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(walletNumL.frame), SCREENW, 20*SCREENW_RATE)];
     remainL.text = @"余额 ( 元 )";
     remainL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     remainL.textAlignment = NSTextAlignmentCenter;
@@ -88,9 +92,12 @@
     
     UILabel *rechargeL = [[UILabel alloc]initWithFrame:CGRectMake(110*SCREENW_RATE ,CGRectGetMaxY(remainL.frame)+17*SCREENW_RATE, 60 *SCREENW_RATE, 30*SCREENW_RATE)];
     rechargeL.text = @"充值";
+    rechargeL.userInteractionEnabled = YES;
     rechargeL.textAlignment = NSTextAlignmentCenter;
     rechargeL.textColor = RGB(255, 255, 255);
     rechargeL.font = [UIFont systemFontOfSize:15];
+    UITapGestureRecognizer *rechargeTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(recharge)];
+    [rechargeL addGestureRecognizer:rechargeTap];
     [self.view insertSubview:rechargeL aboveSubview:reChargeBtn];
     
     UIView *Withdraw = [[UIView alloc]init];
@@ -105,7 +112,10 @@
     WithdrawL.text = @"提现";
     WithdrawL.textAlignment = NSTextAlignmentCenter;
     WithdrawL.textColor = RGB(255, 255, 255);
+    WithdrawL.userInteractionEnabled = YES;
     WithdrawL.font = [UIFont systemFontOfSize:15];
+    UITapGestureRecognizer *withDrawtap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(withDraw)];
+    [WithdrawL addGestureRecognizer:withDrawtap];
     [self.view insertSubview:WithdrawL aboveSubview:Withdraw];
     
     UIView *rechargeV = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(headImage.frame), SCREENW, 50*SCREENW_RATE)];
@@ -117,7 +127,7 @@
     
     UIImageView *rechargeI = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 30*SCREENW_RATE, 30*SCREENW_RATE)];
     rechargeI.center = CGPointMake(30*SCREENW_RATE, 25*SCREENW_RATE);
-    rechargeI.image = [UIImage imageNamed:@"chongzhijilu@2x"];
+    rechargeI.image = [UIImage imageNamed:@"chongzhijilu"];
     [rechargeV addSubview:rechargeI];
     
     UILabel *rechageR = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(rechargeI.frame)+5*SCREENW_RATE, 0, 70*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -128,7 +138,7 @@
     
     UIImageView *arrowV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 18*SCREENW_RATE)];
     arrowV.center = CGPointMake(SCREENW - 20*SCREENW_RATE, 25*SCREENW_RATE);
-    arrowV.image = [UIImage imageNamed:@"arrow_right@2x"];
+    arrowV.image = [UIImage imageNamed:@"arrow_right"];
     [rechargeV addSubview:arrowV];
     
     UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(rechargeV.frame), SCREENW, 1*SCREENW_RATE)];
@@ -144,7 +154,7 @@
     
     UIImageView *withDrawI = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 30*SCREENW_RATE, 30*SCREENW_RATE)];
     withDrawI.center = CGPointMake(30*SCREENW_RATE, 25*SCREENW_RATE);
-    withDrawI.image = [UIImage imageNamed:@"tixianjilu@2x"];
+    withDrawI.image = [UIImage imageNamed:@"tixianjilu"];
     [withDrawV addSubview:withDrawI];
     
     UILabel *withDrawR = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(withDrawI.frame)+5*SCREENW_RATE, 0, 70*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -155,13 +165,13 @@
     
     UIImageView *arrowV1 = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 18*SCREENW_RATE)];
     arrowV1.center = CGPointMake(SCREENW - 20*SCREENW_RATE, 25*SCREENW_RATE);
-    arrowV1.image = [UIImage imageNamed:@"arrow_right@2x"];
+    arrowV1.image = [UIImage imageNamed:@"arrow_right"];
     [withDrawV addSubview:arrowV1];
     
     UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(withDrawV.frame), SCREENW, 1*SCREENW_RATE)];
     lineV1.backgroundColor = RGB(238, 238, 238);
     [self.view addSubview:lineV1];
-    [self getNetData];
+    //[self getNetData];
    
 }
 
@@ -188,20 +198,42 @@
     [self.navigationController pushViewController:WDVC animated:YES];
 }
 
-- (void)getNetData
+//- (void)getNetData
+//{
+//    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+//    NSString *userid = [ud objectForKey:@"userid"];
+//    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+//    [paraDic setObject:userid forKey:@"id"];
+//    [[NetManager shareManager]requestUrlPost:DepositAPI andParameter:paraDic withSuccessBlock:^(id data)
+//    {
+//        if ([data[@"status"]isEqualToString:@"9000"])
+//        {
+//                   }
+//        else if ([data[@"status"]isEqualToString:@"1000"])
+//        {
+//            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+//            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+//            [alertC addAction:action];
+//            [self presentViewController:alertC animated:YES completion:nil];
+//        }
+//       
+//    }
+//    andFailedBlock:^(NSError *error)
+//    {
+//        
+//    }];
+//}
+
+- (void)recharge
 {
-    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:@"0" forKey:@"id"];
-    [[NetManager shareManager]requestUrlPost:DepositAPI andParameter:paraDic withSuccessBlock:^(id data)
-    {
-        NSLog(@"%@",data);
-       walletNumL.text = data[@"data"][@"deposit"];
-        
-    }
-    andFailedBlock:^(NSError *error)
-    {
-        
-    }];
+    TopUpViewController *rechargeVC = [[TopUpViewController alloc]init];
+    [self.navigationController pushViewController:rechargeVC animated:YES];
+}
+
+- (void)withDraw
+{
+    TiXianViewController *txVC = [[TiXianViewController alloc]init];
+    [self.navigationController pushViewController:txVC animated:YES];
 }
 
 - (void)didReceiveMemoryWarning {

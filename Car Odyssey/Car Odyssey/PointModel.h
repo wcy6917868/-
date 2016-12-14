@@ -17,5 +17,4 @@
 @property (nonatomic,copy)NSString<Optional>*order;
 @property (nonatomic,copy)NSString<Optional>*star;
 
-
 @end

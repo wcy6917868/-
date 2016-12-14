@@ -14,8 +14,8 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define postImageAPI @"http://139.196.179.91/carmanl/public/common/upload"
-
+//#define postImageAPI @"http://115.29.246.88:9999/common/upload"
+#define postImageAPI @"http://172.16.3.127/app/portal.htm/app/upload.htm"
 @interface CarRegisViewController ()<UIPickerViewDataSource,UIPickerViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate>
 {
     UITextField *tureNameTF;
@@ -73,10 +73,8 @@
     
     headImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 59*SCREENW_RATE, 59*SCREENW_RATE)];
     headImage.center = CGPointMake(187.5*SCREENW_RATE, 192*SCREENW_RATE);
-    headImage.image = [UIImage imageNamed:@"zc_touxiang@2x"];
-    headImage.userInteractionEnabled = YES;
-    UITapGestureRecognizer *headImageTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(pick)];
-    [headImage addGestureRecognizer:headImageTap];
+    headImage.image = [UIImage imageNamed:@"zc_touxiang"];
+    headImage.userInteractionEnabled = NO;
     [self.view addSubview:headImage];
     
     tureNameTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(headImage.frame)+31*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -103,7 +101,7 @@
     
     UIImageView *carImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 134.5*SCREENW_RATE, 45.5*SCREENW_RATE)];
     carImage.center  = CGPointMake(187.5*SCREENW_RATE, CGRectGetMaxY(tureNameIDTF.frame) + 55*SCREENW_RATE);
-    carImage.image = [UIImage imageNamed:@"car0@2x"];
+    carImage.image = [UIImage imageNamed:@"car0"];
     [self.view addSubview:carImage];
     
     carIDTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(carImage.frame)+22*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -115,14 +113,7 @@
     _cityL.center = CGPointMake(28*SCREENW_RATE, 25*SCREENW_RATE);
     _cityL.text = @"沪";
     _cityL.userInteractionEnabled  = YES;
-    if (SCREENW >= 375)
-    {
-        _cityL.font = [UIFont systemFontOfSize:16];
-    }
-    else
-    {
-        _cityL.font = [UIFont systemFontOfSize:14];
-    }
+    _cityL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(choose)];
     [_cityL addGestureRecognizer:tap];
     [paddingView2 addSubview:_cityL];
@@ -130,7 +121,7 @@
     UIButton *arrowBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     arrowBtn.frame = CGRectMake(0, 0, 9*SCREENW_RATE, 5*SCREENW_RATE) ;
     arrowBtn.center = CGPointMake(50*SCREENW_RATE, 25*SCREENW_RATE);
-    [arrowBtn setBackgroundImage:[UIImage imageNamed:@"arrow_down0@2x"] forState:UIControlStateNormal];
+    [arrowBtn setBackgroundImage:[UIImage imageNamed:@"arrow_down0"] forState:UIControlStateNormal];
     [carIDTF addSubview:arrowBtn];
     carIDTF.leftView = paddingView2;
     carIDTF.leftViewMode = UITextFieldViewModeAlways;
@@ -176,46 +167,6 @@
     
 }
 
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(nonnull NSDictionary<NSString *,id> *)info
-{
-    [picker dismissViewControllerAnimated:YES completion:nil];
-    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
-    NSData *imageData = UIImagePNGRepresentation(image);
-    [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data) {
-        if ([data[@"status"]isEqualToString:@"9000"]) {
-            NSLog(@"%@",data);
-            [Ultitly shareInstance].protrait = data[@"data"][@"path"];
-        }
-        else if ([data[@"status"]isEqualToString:@"0000"])
-        {
-            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"服务器响应失败,请稍后再试" preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-            [alertC addAction:action];
-            [self presentViewController:alertC animated:YES completion:nil];
-        }
-        else if ([data[@"status"]isEqualToString:@"1000"])
-        {
-            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-            [alertC addAction:action];
-            [self presentViewController:alertC animated:YES completion:nil];
-        }
-        else if ([data[@"status"]isEqualToString:@"2000"])
-        {
-            [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:data[@"msg"]];
-            [Ultitly shareInstance].protrait = data[@"data"][@"path"];
-            [self performSelector:@selector(delayMethod) withObject:nil afterDelay:2];
-        }
-        
-    }
-     
-    andFailedBlock:^(NSError *error) {
-        NSLog(@"%@",error);
-    }];
-   
-}
-
-
 - (void)back1
 {
     [self.navigationController popViewControllerAnimated:YES];
@@ -223,8 +174,6 @@
 
 - (void)goNext1
 {
-    if ([Ultitly shareInstance].protrait != nil)
-    {
         if (tureNameTF.text.length != 0)
         {
             if (carIDTF.text.length == 6 && (tureNameIDTF.text.length == 15 || tureNameIDTF.text.length == 18))
@@ -250,14 +199,8 @@
             [self presentViewController:alertC animated:YES completion:nil];
         }
       
-    }
-    else
-    {
-        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"请上传您的头像" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
-        [alertC addAction:cancel];
-        [self presentViewController:alertC animated:YES completion:nil];
-    }
+    
+
     
 }
 

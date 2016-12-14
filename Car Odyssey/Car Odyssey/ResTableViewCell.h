@@ -12,5 +12,4 @@
 @property (nonatomic,strong)UITextField *tf;
 @property (nonatomic,strong)UILabel *label;
 @property (nonatomic,strong)UIImageView* imageV;
-
 @end

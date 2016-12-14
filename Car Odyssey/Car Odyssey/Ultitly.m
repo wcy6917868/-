@@ -33,4 +33,19 @@
     [hud hide:YES afterDelay:2];
 }
 
+- (void)showMBProgressHUDup:(UIView *)view withShowStr:(NSString *)str
+{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    hud.animationType = MBProgressHUDAnimationFade;
+    hud.mode = MBProgressHUDModeText;
+    hud.labelText = str;
+    hud.labelColor = [UIColor whiteColor];
+    hud.margin = 10.f;
+    hud.yOffset = -3.0f;
+    hud.removeFromSuperViewOnHide = YES;
+    [hud hide:YES afterDelay:2];
+}
+
+
+
 @end

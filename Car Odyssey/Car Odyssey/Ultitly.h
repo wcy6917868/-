@@ -26,10 +26,23 @@
 @property (nonatomic,copy)NSString *protrait;
 @property (nonatomic,copy)NSString *policy;
 @property (nonatomic,copy)NSString *prophet;
+@property (nonatomic,copy)NSString *prophet_id;
 @property (nonatomic,copy)NSString *id;
+@property (nonatomic,copy)NSString *orderID;
+@property (nonatomic,copy)NSString *fareCost;
+@property (nonatomic,copy)NSString *mileage;
+@property (nonatomic,strong)UIImage *driverA;
+@property (nonatomic,strong)UIImage *driverB;
+@property (nonatomic,strong)UIImage *travelA;
+@property (nonatomic,strong)UIImage *travelB;
+@property (nonatomic,strong)UIImage *policyImg;
+
+
 
 + (Ultitly *)shareInstance;
 
 - (void)showMBProgressHUD:(UIView *)view withShowStr:(NSString *)str;
+
+- (void)showMBProgressHUDup:(UIView *)view withShowStr:(NSString *)str;
 
 @end

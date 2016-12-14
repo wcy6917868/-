@@ -12,6 +12,7 @@
 @interface JourneyTableViewCell : UITableViewCell
 @property (nonatomic,strong)UILabel *dateL;
 @property (nonatomic,strong)UILabel *getL;
+@property (nonatomic,strong)UILabel *status;
 @property (nonatomic,strong)UILabel *arriveL;
 @property (nonatomic,strong)UIButton *editBtn;
 @property (nonatomic,strong)JourneyModel *model;

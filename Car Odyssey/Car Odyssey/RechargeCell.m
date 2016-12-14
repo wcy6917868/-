@@ -20,8 +20,6 @@
         _moneyL.font = [UIFont systemFontOfSize:16];
         [self.contentView addSubview:_moneyL];
         
-       
-        
     }
     return self;
 }

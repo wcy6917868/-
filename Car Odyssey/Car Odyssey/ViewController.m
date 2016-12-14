@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "LoginViewController.h"
 #import "RegisterViewController.h"
+#import "ViewController.h"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
@@ -26,21 +27,22 @@
     self.view.backgroundColor = [UIColor yellowColor];
     
 }
+
 - (void)viewWillAppear:(BOOL)animated
 {
-    [self.navigationController.navigationBar setBackgroundImage:[[UIImage alloc]init]forBarMetrics:UIBarMetricsDefault];
-    [self.navigationController.navigationBar setShadowImage:[[UIImage alloc]init]];
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
 }
-- (void)viewDidDisappear:(BOOL)animated
+
+-(void)viewWillDisappear:(BOOL)animated
 {
-    [self.navigationController.navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-    [self.navigationController.navigationBar setShadowImage:nil];
-    
+    [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
 }
 
 - (void)initUI
 {
-    UIImageView *backgroundImage = [[UIImageView alloc]initWithFrame:self.view.bounds];
+    UIImageView *backgroundImage = [[UIImageView alloc]initWithFrame:self.view.frame];
     backgroundImage.image = [UIImage imageNamed:@"xx1.jpg"];
     [self.view addSubview:backgroundImage];
     
@@ -57,12 +59,12 @@
     
     UIImageView *carImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 48*SCREENW_RATE, 56*SCREENW_RATE)];
     carImage.center = CGPointMake(SCREENW/2, 94*SCREENW_RATE);
-    carImage.image  = [UIImage imageNamed:@"logo_shouye@2x"];
+    carImage.image  = [UIImage imageNamed:@"logo_shouye"];
     [self.view insertSubview:carImage aboveSubview:backgroundImage];
     
     UIImageView *BnxImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 260*SCREENW_RATE, 38*SCREENW_RATE)];
     BnxImage.center = CGPointMake(SCREENW/2, (CGRectGetMaxY(carImage.frame)+36)*SCREENW_RATE);
-    BnxImage.image  = [UIImage imageNamed:@"cmxbnx@2x"];
+    BnxImage.image  = [UIImage imageNamed:@"cmxbnx"];
     [self.view insertSubview:BnxImage aboveSubview:backgroundImage];
     
     UILabel *bnxL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 200*SCREENW_RATE, 36*SCREENW_RATE)];

@@ -27,8 +27,6 @@
  */
 -(void) onReq:(BaseReq*)req;
 
-
-
 /*! @brief 发送一个sendReq后，收到微信的回应
  *
  * 收到一个来自微信的处理结果。调用一次sendReq后会收到onResp。

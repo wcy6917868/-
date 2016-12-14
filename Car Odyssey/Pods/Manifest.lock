@@ -24,6 +24,7 @@ PODS:
   - IQKeyboardManager (4.0.4)
   - JSONModel (1.2.0)
   - MBProgressHUD (0.9.2)
+  - MJRefresh (3.1.12)
   - MMDrawerController (0.5.7):
     - MMDrawerController/Core (= 0.5.7)
     - MMDrawerController/MMDrawerBarButtonItem (= 0.5.7)
@@ -36,6 +37,9 @@ PODS:
     - MMDrawerController/Core
   - MMDrawerController/Subclass (0.5.7):
     - MMDrawerController/Core
+  - SDWebImage (3.8.2):
+    - SDWebImage/Core (= 3.8.2)
+  - SDWebImage/Core (3.8.2)
 
 DEPENDENCIES:
   - AFNetworking
@@ -45,7 +49,9 @@ DEPENDENCIES:
   - IQKeyboardManager
   - JSONModel
   - MBProgressHUD
+  - MJRefresh
   - MMDrawerController (~> 0.5.7)
+  - SDWebImage
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
@@ -56,8 +62,10 @@ SPEC CHECKSUMS:
   IQKeyboardManager: 4a6f83b540283c2645aaeba2bd8dc0f09b5c77f8
   JSONModel: 12523685c4b623553ccf844bbbf7007624317b2c
   MBProgressHUD: 1569cf7ace17a8bac47aabfbb8580a49690386d1
+  MJRefresh: b96cdb21c4aa75a7b07654311ab2f315c497e806
   MMDrawerController: 7a4cf8e25596bf2434e03ce50d22a8608ddee6a1
+  SDWebImage: 098e97e6176540799c27e804c96653ee0833d13c
 
-PODFILE CHECKSUM: 2ea4f0e9ebae183224fbc7981a56c13b8f56868f
+PODFILE CHECKSUM: 5cf52b0dc18e9a02ccc586f09616f2c2b7a8c3dd
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.1.1

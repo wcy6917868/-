@@ -14,13 +14,16 @@
 #import "WalkLienceViewController.h"
 #import "NetManager.h"
 #import "Ultitly.h"
-#define RegisterAPI @"http://139.196.179.91/carmanl/public/account/register"
+#define RegisterAPI @"http://115.29.246.88:9999/account/register"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
 
 @interface CarIDRegisViewController ()<UITableViewDelegate,UITableViewDataSource>
+{
+    BOOL isChooseDate;
+}
 @property (nonatomic,strong)UITableView *myTableV;
 @property (nonatomic,strong)UIView *headV;
 @property (nonatomic,strong)UIView *FootV;
@@ -62,7 +65,7 @@
     promptView.backgroundColor = RGB(37, 155, 255);
     UIImageView *imageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 21*SCREENW_RATE, 21*SCREENW_RATE)];
     imageV.center = CGPointMake(36*SCREENW_RATE, 22*SCREENW_RATE);
-    imageV.image = [UIImage imageNamed:@"zhuyi0@2x"];
+    imageV.image = [UIImage imageNamed:@"zhuyi0"];
     [promptView addSubview:imageV];
     
     UILabel *zhuyiText = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(imageV.frame)+8*SCREENW_RATE, 11*SCREENW_RATE, 280*SCREENW_RATE, 22*SCREENW_RATE)];
@@ -74,7 +77,7 @@
     UIButton *chaBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     chaBtn.frame = CGRectMake(0, 0, 16*SCREENW_RATE, 16*SCREENW_RATE);
     chaBtn.center = CGPointMake(CGRectGetMaxX(zhuyiText.frame)+20*SCREENW_RATE, 22*SCREENW_RATE);
-    [chaBtn setBackgroundImage:[UIImage imageNamed:@"cha@2x"] forState:UIControlStateNormal];
+    [chaBtn setBackgroundImage:[UIImage imageNamed:@"cha"] forState:UIControlStateNormal];
     [chaBtn addTarget:self action:@selector(cha) forControlEvents:UIControlEventTouchUpInside];
     [promptView addSubview:chaBtn];
     
@@ -95,6 +98,7 @@
     headL.textColor = RGB(136, 136, 136);
     [headV addSubview:headL];
     [view addSubview:headV];
+    isChooseDate = NO;
     
 }
 
@@ -144,7 +148,7 @@
         _overBtn.titleLabel.font = [UIFont systemFontOfSize:18];
         _overBtn.backgroundColor = RGB(37, 155, 255);
         [_overBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-        [_overBtn addTarget:self action:@selector(over1) forControlEvents:UIControlEventTouchUpInside];
+        [_overBtn addTarget:self action:@selector(over1:) forControlEvents:UIControlEventTouchUpInside];
         [_FootV addSubview:_overBtn];
     }
      return _FootV;
@@ -172,7 +176,6 @@
             if (!cell1) {
                 cell1 = [[ResTableViewCell alloc]initWithStyle: UITableViewCellStyleDefault reuseIdentifier:@"cell1"];
                 cell1.label.text = @"车辆所有人";
-                [Ultitly shareInstance].holder = cell1.tf.text;
                 [cell1.imageV removeFromSuperview];
             }
             return cell1;
@@ -240,43 +243,45 @@
     [view removeFromSuperview];
 }
 
-- (void)over1
+- (void)over1:(UIButton *)selectedBtn
 {
-    if ([Ultitly shareInstance].holder != nil)
-    {
         if ([Ultitly shareInstance].date != nil)
         {
+            selectedBtn.userInteractionEnabled = NO;
+            NSIndexPath *index = [NSIndexPath indexPathForRow:1 inSection:0];
+            ResTableViewCell *cell1 = [_myTableV cellForRowAtIndexPath:index];
             NSMutableDictionary *parameterDic = [NSMutableDictionary dictionary];
             [parameterDic setObject:@"2333" forKey:@"locid"];
             [parameterDic setObject:[Ultitly shareInstance].mobile forKey:@"mobile"];
             [parameterDic setObject:[Ultitly shareInstance].realname forKey:@"realname"];
             [parameterDic setObject:[Ultitly shareInstance].idcard forKey:@"idcard"];
             [parameterDic setObject:@"123" forKey:@"carid"];
-            [parameterDic setObject:[Ultitly shareInstance].holder forKey:@"holder"];
-            [parameterDic setObject:[Ultitly shareInstance].date forKey:@"date"];
+            [parameterDic setObject:cell1.tf.text forKey:@"holder"];
+            [parameterDic setObject:[Ultitly shareInstance].date forKey:@"cardate"];
             [parameterDic setObject:[Ultitly shareInstance].driver_a forKey:@"driver_a"];
             [parameterDic setObject:[Ultitly shareInstance].driver_b forKey:@"driver_b"];
             [parameterDic setObject:[Ultitly shareInstance].travel_a forKey:@"travel_a"];
             [parameterDic setObject:[Ultitly shareInstance].travel_b forKey:@"travel_b"];
             [parameterDic setObject:[Ultitly shareInstance].policy forKey:@"policy"];
-            [parameterDic setObject:@"laowang" forKey:@"prophet"];
-            [parameterDic setObject:[Ultitly shareInstance].protrait forKey:@"protrait"];
+            [parameterDic setObject:[Ultitly shareInstance].prophet_id forKey:@"prophet_id"];
+            [parameterDic setObject:[Ultitly shareInstance].protrait forKey:@"portrait"];
+            [parameterDic setObject:[Ultitly shareInstance].license forKey:@"license"];
             
             [[NetManager shareManager]requestUrlPost:RegisterAPI andParameter:parameterDic withSuccessBlock:^(id data)
             {
+                selectedBtn.userInteractionEnabled = YES;
                 if ([data[@"status"]isEqualToString:@"9000"])
                 {
                     NSLog(@"%@",data);
+                    [Ultitly shareInstance].travelA = nil;
+                    [Ultitly shareInstance].travelB = nil;
+                    [Ultitly shareInstance].driverA = nil;
+                    [Ultitly shareInstance].driverB = nil;
+                    [Ultitly shareInstance].policyImg = nil;
                     ResOverViewController *OVC = [[ResOverViewController alloc]init];
                     [self.navigationController pushViewController:OVC animated:YES];
                 }
-                else if ([data[@"status"]isEqualToString:@"0000"])
-                {
-                    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"服务器响应失败,请稍后再试" preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-                    [alertC addAction:action];
-                    [self presentViewController:alertC animated:YES completion:nil];
-                }
+
                 else if ([data[@"status"]isEqualToString:@"1000"])
                 {
                     UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
@@ -284,16 +289,10 @@
                     [alertC addAction:action];
                     [self presentViewController:alertC animated:YES completion:nil];
                 }
-                else if ([data[@"status"]isEqualToString:@"2000"])
-                {
-                    [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:data[@"msg"]];
-                    
-//                    [self performSelector:@selector(delayMethod) withObject:nil afterDelay:2];
-                }
             }
             andFailedBlock:^(NSError *error)
             {
-                NSLog(@"%@",error);
+                selectedBtn.userInteractionEnabled = YES;
             }];
         }
         else
@@ -303,14 +302,14 @@
             [alertC addAction:action];
             [self presentViewController:alertC animated:YES completion:nil];
         }
-    }
-    else
-    {
-        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"请输入车辆所有人姓名" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *action = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
-        [alertC addAction:action];
-        [self presentViewController:alertC animated:YES completion:nil];
-    }
+
+//    else
+//    {
+//        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"请输入车辆所有人姓名" preferredStyle:UIAlertControllerStyleAlert];
+//        UIAlertAction *action = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+//        [alertC addAction:action];
+//        [self presentViewController:alertC animated:YES completion:nil];
+//    }
    
 }
 
@@ -355,18 +354,30 @@
     }
     else if (indexPath.section == 0 && indexPath.row == 2)
     {
-        _datePicker = [[UIDatePicker alloc]initWithFrame:CGRectMake(0, 320*SCREENW_RATE, SCREENW, 400*SCREENW_RATE)];
-        _datePicker.backgroundColor = [UIColor whiteColor];
-        _datePicker.datePickerMode = UIDatePickerModeDate;
-         [_datePicker setLocale:[NSLocale localeWithLocaleIdentifier:@"zh-CN"]];
-        [_datePicker addTarget:self action:@selector(changeDate) forControlEvents:UIControlEventValueChanged];
-        [self.view addSubview:_datePicker];
-        UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-        btn.frame = CGRectMake(0, 340*SCREENW_RATE, 60*SCREENW_RATE, 50*SCREENW_RATE);
-        [btn setTitle:@"确定" forState:UIControlStateNormal];
-        [btn addTarget:self action:@selector(sure:) forControlEvents:UIControlEventTouchUpInside];
-        [self.view insertSubview:btn aboveSubview:_datePicker];
-    }
+        if (isChooseDate == NO)
+        {
+            _datePicker = [[UIDatePicker alloc]initWithFrame:CGRectMake(0, 320*SCREENW_RATE, SCREENW, 400*SCREENW_RATE)];
+            _datePicker.backgroundColor = [UIColor whiteColor];
+            _datePicker.datePickerMode = UIDatePickerModeDate;
+            [_datePicker setLocale:[NSLocale localeWithLocaleIdentifier:@"zh-CN"]];
+            [_datePicker addTarget:self action:@selector(changeDate) forControlEvents:UIControlEventValueChanged];
+            [self.view addSubview:_datePicker];
+            UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
+            btn.frame = CGRectMake(0, 340*SCREENW_RATE, 60*SCREENW_RATE, 50*SCREENW_RATE);
+            [btn setTitle:@"确定" forState:UIControlStateNormal];
+            [btn addTarget:self action:@selector(sure:) forControlEvents:UIControlEventTouchUpInside];
+            [self.view insertSubview:btn aboveSubview:_datePicker];
+            isChooseDate  = YES;
+        }
+        else
+        {
+            
+        }
+        
+  
+        
+        }
+    
 }
 
 - (void)changeDate
@@ -382,6 +393,7 @@
 
 - (void)sure:(UIButton *)sureBtn
 {
+    isChooseDate = NO;
     [self changeDate];
     [sureBtn removeFromSuperview];
     [self.datePicker removeFromSuperview];

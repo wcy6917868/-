@@ -24,8 +24,8 @@
         view.layer.cornerRadius = 5;
         [self.contentView addSubview:view];
         
-        _dateL = [[UILabel alloc]initWithFrame:CGRectMake(16*SCREENW_RATE, 0, 150*SCREENW_RATE, 50*SCREENW_RATE)];
-        _dateL.font = [UIFont systemFontOfSize:16];
+        _dateL = [[UILabel alloc]initWithFrame:CGRectMake(16*SCREENW_RATE, 0, 200*SCREENW_RATE, 50*SCREENW_RATE)];
+        _dateL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
         _dateL.textColor = RGB(34, 34, 34);
         [self.contentView addSubview:_dateL];
         
@@ -45,16 +45,16 @@
         _overListL.textColor = RGB(102, 102, 102);
         [self.contentView addSubview:_overListL];
         
-        for (int i = 0; i < 5; i ++)
-        {
-            _starImage = [[UIImageView alloc]initWithFrame:CGRectMake(16+(i*21)*SCREENW_RATE, CGRectGetMaxY(_overListL.frame), 16*SCREENW_RATE, 15*SCREENW_RATE)];
-            _starImage.image = [UIImage imageNamed:@"wujiaoxing1@2x"];
-            [self.contentView addSubview:_starImage];
-        }
-        
-            _blueImage = [[UIImageView alloc]init];
-            _blueImage.image = [UIImage imageNamed:@"wujiaoxing0@2x"];
-            [self.contentView addSubview:_blueImage];
+//        for (int i = 0; i < 5; i ++)
+//        {
+//            _starImage = [[UIImageView alloc]initWithFrame:CGRectMake(16+(i*21)*SCREENW_RATE, CGRectGetMaxY(_overListL.frame), 16*SCREENW_RATE, 15*SCREENW_RATE)];
+//            _starImage.image = [UIImage imageNamed:@"wujiaoxing1"];
+//            [self.contentView addSubview:_starImage];
+//        }
+//        
+//            _blueImage = [[UIImageView alloc]init];
+//            _blueImage.image = [UIImage imageNamed:@"wujiaoxing0"];
+//            [self.contentView addSubview:_blueImage];
         
         _pointL = [[UILabel alloc]initWithFrame:CGRectMake(0,0,50*SCREENW_RATE,50*SCREENW_RATE)];
         _pointL.center = CGPointMake(SCREENW - 55*SCREENW_RATE, CGRectGetMaxY(lineV.frame)+50*SCREENW_RATE);
@@ -65,8 +65,8 @@
         
         _editBtn = [[UIButton alloc]initWithFrame:CGRectMake(0, 0, 20*SCREENW_RATE, 20*SCREENW_RATE)];
         _editBtn.center = CGPointMake(SCREENW - 55*SCREENW_RATE, CGRectGetMaxY(lineV.frame)+50*SCREENW_RATE);
-        [_editBtn setBackgroundImage:[UIImage imageNamed:@"weixuanzhognzhuangtai@2x"] forState:UIControlStateNormal];
-        [_editBtn setBackgroundImage:[UIImage imageNamed:@"xuanzhongzhuangtai@2x"] forState:UIControlStateSelected];
+        [_editBtn setBackgroundImage:[UIImage imageNamed:@"weixuanzhognzhuangtai"] forState:UIControlStateNormal];
+        [_editBtn setBackgroundImage:[UIImage imageNamed:@"xuanzhongzhuangtai"] forState:UIControlStateSelected];
         [self.contentView addSubview:self.editBtn];
     }
     return self;

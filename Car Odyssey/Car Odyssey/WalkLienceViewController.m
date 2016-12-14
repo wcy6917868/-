@@ -9,7 +9,7 @@
 #import "WalkLienceViewController.h"
 #import "NetManager.h"
 #import "Ultitly.h"
-#define postImageAPI @"http://139.196.179.91/carmanl/public/common/upload"
+#define postImageAPI @"http://115.29.246.88:9999/common/upload"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -59,7 +59,15 @@
     [view addSubview:label1];
     
     travelImageA = [[UIImageView alloc]initWithFrame:CGRectMake(168*SCREENW_RATE, 15 *SCREENW_RATE, 160*SCREENW_RATE, 90*SCREENW_RATE)];
-    travelImageA.image = [UIImage imageNamed:@"polaroid@2x"];
+    if ([Ultitly shareInstance].travelA == nil)
+    {
+        travelImageA.image = [UIImage imageNamed:@"polaroid"];
+    }
+    else
+    {
+        travelImageA.image = [Ultitly shareInstance].travelA;
+    }
+    
     travelImageA.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(postA)];
     [travelImageA addGestureRecognizer:tap];
@@ -69,7 +77,6 @@
     UIView *view1 = [[UIView alloc]initWithFrame:CGRectMake(15 *SCREENW_RATE, CGRectGetMaxY(view.frame)+1*SCREENW_RATE, 345*SCREENW_RATE, 120*SCREENW_RATE)];
     view1.backgroundColor = [UIColor whiteColor];
     
-    
     UILabel *label2 = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 120*SCREENW_RATE, 30*SCREENW_RATE)];
     label2.textColor = RGB(136, 136, 136);
     label2.center = CGPointMake(86*SCREENW_RATE, 60*SCREENW_RATE);
@@ -78,7 +85,14 @@
     [view1 addSubview:label2];
     
     travelImageB = [[UIImageView alloc]initWithFrame:CGRectMake(168*SCREENW_RATE, 15 *SCREENW_RATE, 160*SCREENW_RATE, 90*SCREENW_RATE)];
-    travelImageB.image = [UIImage imageNamed:@"polaroid@2x"];
+    if ([Ultitly shareInstance].travelB == nil)
+    {
+        travelImageB.image = [UIImage imageNamed:@"polaroid"];
+    }
+    else
+    {
+        travelImageB.image = [Ultitly shareInstance].travelB;
+    }
     travelImageB.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap1 = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(postB)];
     [travelImageB addGestureRecognizer:tap1];
@@ -172,16 +186,28 @@
     {
         [picker dismissViewControllerAnimated:YES completion:nil];
         UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+        [Ultitly shareInstance].travelA = image;
         NSData *imageData = UIImagePNGRepresentation(image);
         travelImageA.image = image ;
         [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data)
         {
-            NSLog(@"%@",data);
-            [Ultitly shareInstance].travel_a = data[@"data"][@"path"];
+            if ([data[@"status"]isEqualToString:@"9000"])
+            {
+               // NSLog(@"%@",data);
+                [Ultitly shareInstance].travel_a = data[@"data"][@"path"];
+            }
+            else if ([data[@"status"]isEqualToString:@"1000"])
+            {
+                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                [alertC addAction:action];
+                [self presentViewController:alertC animated:YES completion:nil];
+            }
+            
         }
         andFailedBlock:^(NSError *error)
         {
-            NSLog(@"%@",error);
+            //NSLog(@"%@",error);
         }];
         
     }
@@ -189,12 +215,24 @@
     {
         [picker dismissViewControllerAnimated:YES completion:nil];
         UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+        [Ultitly shareInstance].travelB = image;
         NSData *imageData = UIImagePNGRepresentation(image);
         travelImageB.image = image;
         [[NetManager shareManager]requestUrlPostImage:postImageAPI andParameter:nil withImageData:imageData withSuccessBlock:^(id data)
          {
-             NSLog(@"%@",data);
-             [Ultitly shareInstance].travel_b = data[@"data"][@"path"];
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 NSLog(@"%@",data);
+                [Ultitly shareInstance].travel_b = data[@"data"][@"path"];
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
+             
          }
             andFailedBlock:^(NSError *error)
          {

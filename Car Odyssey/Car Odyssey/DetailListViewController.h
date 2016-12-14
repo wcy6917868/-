@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "JourneyModel.h"
+#import "OrderModel.h"
 
 @interface DetailListViewController : UIViewController
 @property (nonatomic,copy)NSString *dateStr;
@@ -15,4 +16,6 @@
 @property (nonatomic,copy)NSString *arriveStr;
 @property (nonatomic,copy)NSString *fareStr;
 @property (nonatomic,strong)JourneyModel *model;
+@property (nonatomic,strong)OrderModel *orderModel;
+@property (nonatomic,copy)NSString *statusStr;
 @end

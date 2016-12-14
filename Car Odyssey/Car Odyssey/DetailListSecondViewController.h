@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 #import "JourneyModel.h"
+#import "OrderModel.h"
 
 @interface DetailListSecondViewController : UIViewController
 @property (nonatomic,strong)JourneyModel*Jmodel;
+@property (nonatomic,strong)OrderModel *orderModel;
 
 
 @end

@@ -11,5 +11,12 @@
 @interface BackGroundViewController : UIViewController
 @property (nonatomic,strong) UIButton *qiangdanBtn;
 @property (nonatomic,strong)void (^block)(NSString *);
-
+@property (nonatomic,copy)NSString *outsetStr;
+@property (nonatomic,copy)NSString *finishStr;
+@property (nonatomic,copy)NSString *distanceStr;
+@property (nonatomic,copy)NSString *intergralStr;
+@property (nonatomic,copy)NSString *estimateCost;
+@property (nonatomic,copy)NSString *driverLat;
+@property (nonatomic,copy)NSString *driverLng;
+- (void)uiConfig;
 @end

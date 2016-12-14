@@ -40,10 +40,9 @@
 
 - (void)configUI
 {
-    
     self.view.backgroundColor = RGB(238, 238, 238);
     UIImageView *imageV = [[UIImageView alloc]initWithFrame:CGRectMake(SCREENW/2-30*SCREENW_RATE, 132*SCREENW_RATE, 60*SCREENW_RATE, 60*SCREENW_RATE)];
-    imageV.image = [UIImage imageNamed:@"Shape-77@2x"];
+    imageV.image = [UIImage imageNamed:@"Shape-77"];
     [self.view addSubview:imageV];
     
     UILabel *textL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 150*SCREENW_RATE, 50*SCREENW_RATE)];

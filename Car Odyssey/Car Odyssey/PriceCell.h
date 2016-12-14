@@ -9,5 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface PriceCell : UITableViewCell
+@property (nonatomic,strong)UILabel *titleL;
+@property (nonatomic,strong)UITextField *moneyTF;
+@property (nonatomic,strong)void(^addMoneyBlock)(NSString *);
 
 @end

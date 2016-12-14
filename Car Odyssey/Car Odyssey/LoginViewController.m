@@ -14,7 +14,7 @@
 #import "ExplainViewController.h"
 #import "ForgetPassWordViewController.h"
 #import "Ultitly.h"
-#define LoginAPI @"http://139.196.179.91/carmanl/public/account/login"
+#define LoginAPI @"http://115.29.246.88:9999/account/login"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -32,16 +32,24 @@
     UITextField *passWord;
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self initNav];
+    
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initNav];
+    //[self initNav];
     [self configUI];
     
 }
 
 - (void)initNav
 {
+    
     //标题设置
     self.navigationController.navigationBar.barTintColor = RGB(37, 155, 255);
     self.navigationItem.title = @"登录";
@@ -63,12 +71,13 @@
     //创建汽车图片
     UIImageView *carImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 48*SCREENW_RATE, 59*SCREENW_RATE)];
     carImage.center = CGPointMake(187.5 * SCREENW_RATE, 140 *SCREENW_RATE);
-    carImage.image = [UIImage imageNamed:@"logo@2x"];
+    carImage.image = [UIImage imageNamed:@"logo"];
     [self.view addSubview:carImage];
     //创建文本输入框
     UILabel *userL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 60*SCREENW_RATE, 30*SCREENW_RATE)];
-    userL.text = @"   账号";
+    userL.text = @"账号";
     userL.textColor = RGB(34, 34, 34);
+    userL.textAlignment = NSTextAlignmentCenter;
     userL.font = [UIFont systemFontOfSize:16];
     user = [[UITextField alloc]initWithFrame:CGRectMake(0, 220.5*SCREENW_RATE, SCREENW, 50*SCREENW_RATE)];
     user.borderStyle = UITextBorderStyleNone;
@@ -80,7 +89,8 @@
     [self.view addSubview:user];
     
     UILabel *passL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 60*SCREENW_RATE, 30*SCREENW_RATE)];
-    passL.text = @"   密码";
+    passL.text = @"密码";
+    passL.textAlignment = NSTextAlignmentCenter;
     passL.textColor = RGB(34, 34, 34);
     passL.font = [UIFont systemFontOfSize:16];
     passWord = [[UITextField alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(user.frame), SCREENW, 50*SCREENW_RATE)];
@@ -109,19 +119,19 @@
     loginBtn.backgroundColor = RGB(37, 155, 255);
     [loginBtn setTitle:@"登录" forState:UIControlStateNormal];
     [loginBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-    [loginBtn addTarget:self action:@selector(toLog) forControlEvents:UIControlEventTouchUpInside];
+    [loginBtn addTarget:self action:@selector(toLog:) forControlEvents:UIControlEventTouchUpInside];
     loginBtn.titleLabel.font = [UIFont systemFontOfSize:18];
     [self.view addSubview:loginBtn];
     
     _danxuanBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     _danxuanBtn.frame = CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(loginBtn.frame)+11*SCREENW_RATE, 25*SCREENW_RATE, 25*SCREENW_RATE);
-    [_danxuanBtn setBackgroundImage:[UIImage imageNamed:@"danxuan1@2x"] forState:UIControlStateNormal];
+    [_danxuanBtn setBackgroundImage:[UIImage imageNamed:@"danxuan1"] forState:UIControlStateNormal];
     [_danxuanBtn setUserInteractionEnabled:NO];
     [self.view addSubview:_danxuanBtn];
     
     UILabel *textL = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(_danxuanBtn.frame)+8*SCREENW_RATE, _danxuanBtn.frame.origin.y+2, 40*SCREENW_RATE, 20*SCREENW_RATE)];
     textL.text = @"同意";
-    textL.font = [UIFont systemFontOfSize:14];
+    textL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
     textL.textColor = RGB(102, 102, 102);
     [self.view addSubview:textL];
     
@@ -135,25 +145,6 @@
     [textL1 addGestureRecognizer:tap];
     [self.view addSubview:textL1];
 
-    UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(textL1.frame)+150*SCREENW_RATE, 115.5*SCREENW_RATE, 1*SCREENW_RATE)];
-    lineV1.backgroundColor = RGB(204, 204, 204);
-    [self.view addSubview:lineV1];
-    
-    UILabel *textL2 = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 124*SCREENW_RATE, 30*SCREENW_RATE)];
-    textL2.center = CGPointMake(200.5*SCREENW_RATE, lineV1.frame.origin.y);
-    textL2.text = @"   其他方式登录";
-    textL2.font = [UIFont systemFontOfSize:14];
-    textL2.textColor = RGB(102, 102, 102);
-    [self.view addSubview:textL2];
-    
-    UIView *lineV2 = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(textL2.frame),lineV1.frame.origin.y, 100.5*SCREENW_RATE, 1*SCREENW_RATE)];
-    lineV2.backgroundColor = RGB(204, 204, 204);
-    [self.view addSubview:lineV2];
-    
-    UIButton *weixinBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    weixinBtn.frame = CGRectMake(180*SCREENW_RATE, CGRectGetMaxY(textL2.frame)+12*SCREENW_RATE, 32*SCREENW_RATE, 27*SCREENW_RATE);
-    [weixinBtn setBackgroundImage:[UIImage imageNamed:@"weixin@2x"] forState:UIControlStateNormal];
-    [self.view addSubview:weixinBtn];
     
 }
 
@@ -174,27 +165,38 @@
     [self.navigationController pushViewController:rvc animated:YES];
 }
 
-- (void)toLog
+- (void)toLog:(UIButton *)selectedBtn
 {
     if (user.text.length > 0 && passWord.text.length > 0)
     {
+        selectedBtn.userInteractionEnabled = NO;
         NSMutableDictionary *paramterDic = [NSMutableDictionary dictionary];
         [paramterDic setObject:user.text forKey:@"mobile"];
         [paramterDic setObject:passWord.text forKey:@"passwd"];
         [[NetManager shareManager]requestUrlPost:LoginAPI andParameter:paramterDic withSuccessBlock:^(id data)
         {
+            selectedBtn.userInteractionEnabled = YES;
             NSLog(@"%@",data);
             if ([data[@"status"]isEqualToString:@"9000"])
             {
                 [Ultitly shareInstance].id = data[@"data"][@"id"];
+                
+                NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+                [ud setBool:YES forKey:@"isLogin"];
+                [ud setObject:data[@"data"][@"id"] forKey:@"userid"];
+                [ud setObject:data[@"data"][@"realname"] forKey:@"name"];
+                [ud setObject:data[@"data"][@"age"] forKey:@"age"];
+                [ud setObject:data[@"data"][@"license"] forKey:@"license"];
+                [ud setObject:data[@"data"][@"gender"] forKey:@"gender"];
+                [ud setObject:data[@"data"][@"account_money"] forKey:@"accountmoney"];
+                [ud setObject:data[@"data"][@"account_integral"] forKey:@"accountintegral"];
+                [ud setObject:data[@"data"][@"portrait"] forKey:@"headportrait"];
+                [ud setObject:data[@"data"][@"portraitname"] forKey:@"portraitname"];
+                [ud setObject:user.text forKey:@"mobile"];
+                [ud setObject:data[@"data"][@"locid"] forKey:@"city"];
+                [ud synchronize];
+                
                 [self delayMethod];
-            }
-            else if ([data[@"status"]isEqualToString:@"0000"])
-            {
-                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"服务器响应失败,请稍后再试" preferredStyle:UIAlertControllerStyleAlert];
-                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-                [alertC addAction:action];
-                [self presentViewController:alertC animated:YES completion:nil];
             }
             else if ([data[@"status"]isEqualToString:@"1000"])
             {
@@ -203,15 +205,10 @@
                 [alertC addAction:action];
                 [self presentViewController:alertC animated:YES completion:nil];
             }
-            else if ([data[@"status"]isEqualToString:@"2000"])
-            {
-                [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:data[@"msg"]];
-                [self performSelector:@selector(delayMethod) withObject:nil afterDelay:2];
-            }
         }
         andFailedBlock:^(NSError *error)
          {
-             NSLog(@"%@",error);
+             selectedBtn.userInteractionEnabled = YES;
         }];
     }
     else
@@ -221,14 +218,14 @@
         [alertC addAction:action];
         [self presentViewController:alertC animated:YES completion:nil];
     }
-    
+
 }
 
 - (void)privacy
 {
     ExplainViewController *explainVC = [[ExplainViewController alloc]init];
     NSString *titleStr = @"服务标准及违约责任认定";
-    NSString *APIStr = @"http://139.196.179.91/carmanl/public/account/responsibility";
+    NSString *APIStr = @"http://115.29.246.88:9999/account/responsibility";
     explainVC.titleStr = titleStr;
     explainVC.APIStr = APIStr;
     [self.navigationController pushViewController:explainVC animated:YES];
@@ -244,6 +241,7 @@
 {
     MapViewController *MVC = [[MapViewController alloc]init];
     [self.navigationController pushViewController:MVC animated:YES];
+
     AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
     appdel.window.tintColor = [UIColor blueColor];
     appdel.window.rootViewController = appdel.drawerController;

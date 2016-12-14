@@ -10,14 +10,15 @@
 #import "PointCell.h"
 #import "NetManager.h"
 #import "PointModel.h"
+#import "Ultitly.h"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define allPointAPI @"http://139.196.179.91/carmanl/public/center/allint"
-#define getPointAPI @"http://139.196.179.91/carmanl/public/center/inint"
-#define outPointAPI @"http://139.196.179.91/carmanl/public/center/outint"
-#define deletePointAPI @"http://139.196.179.91/carmanl/public/center/delint"
+#define allPointAPI @"http://115.29.246.88:9999/center/allint"
+#define getPointAPI @"http://115.29.246.88:9999/center/inint"
+#define outPointAPI @"http://115.29.246.88:9999/center/outint"
+#define deletePointAPI @"http://115.29.246.88:9999/center/delint"
 @interface MyPointViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     BOOL isSelected;
@@ -25,11 +26,13 @@
     BOOL isDelete;
     NSMutableArray *suibianArr;
     NSMutableArray *boolArr;
+    NSMutableArray *BoolArray;
     UILabel *pointL;
 }
 @property (nonatomic,strong)UITableView *tableV;
 @property (nonatomic,strong)NSMutableArray *dataArr;
-@property (nonatomic,strong)NSMutableDictionary *paramDic;
+@property (nonatomic,copy)NSString *btnStatus;
+
 
 @end
 
@@ -38,7 +41,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     _dataArr = [NSMutableArray array];
-    _paramDic = [NSMutableDictionary dictionary];
+    BoolArray = [NSMutableArray array];
     [self configNav];
     [self configUI];
     
@@ -61,13 +64,15 @@
 
 - (void)configUI
 {
+    _btnStatus = @"1";
+    
     UIView *blueV = [[UIView alloc]initWithFrame:CGRectMake(0, 64, SCREENW, 120*SCREENW_RATE)];
     blueV.backgroundColor = RGB(37, 155, 255);
     [self.view addSubview:blueV];
     
     UIImageView *iconImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 11*SCREENW_RATE, 12*SCREENW_RATE)];
     iconImage.center = CGPointMake(21*SCREENW_RATE, 86*SCREENW_RATE);
-    iconImage.image = [UIImage imageNamed:@"sheriff-badge-2@2x"];
+    iconImage.image = [UIImage imageNamed:@"sheriff-badge-2"];
     [self.view insertSubview:iconImage aboveSubview:blueV];
     
     UILabel *iconL = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(iconImage.frame)+4*SCREENW_RATE, 64*SCREENW_RATE, 100*SCREENW_RATE, 44*SCREENW_RATE)];
@@ -76,13 +81,17 @@
     iconL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
     [self.view insertSubview:iconL aboveSubview:blueV];
 
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *integralStr = [ud objectForKey:@"accountintegral"];
+    
     pointL = [[UILabel alloc]initWithFrame:CGRectMake(0, 64*SCREENW_RATE, SCREENW, 120*SCREENW_RATE)];
     pointL.textColor = RGB(255, 255, 255);
     pointL.font = [UIFont systemFontOfSize:50];
     pointL.textAlignment = NSTextAlignmentCenter;
+    pointL.text = [NSString stringWithFormat:@"%@",integralStr];
     [self.view insertSubview:pointL aboveSubview:blueV];
     
-    UILabel *fenL = [[UILabel alloc]initWithFrame:CGRectMake(240*SCREENW_RATE, 115*SCREENW_RATE, 40*SCREENW_RATE, 40*SCREENW_RATE)];
+    UILabel *fenL = [[UILabel alloc]initWithFrame:CGRectMake(260*SCREENW_RATE, 115*SCREENW_RATE, 40*SCREENW_RATE, 40*SCREENW_RATE)];
     fenL.text = @"分";
     fenL.font = [UIFont systemFontOfSize:12*SCREENW_RATE];
     fenL.textColor = RGB(255, 255, 255);
@@ -154,48 +163,108 @@
 #pragma mark 编辑方法
 - (void)edit:(UIButton *)editBtn
 {
-   
-    if (isDelete == NO)
+    if (_dataArr.count != 0)
     {
-        isSelected = NO;
-        isHidden = YES;
-        editBtn.selected =YES;
-        isDelete = YES;
-        [self.tableV reloadData];
-    }
-    else
+        if (isDelete == NO)
+        {
+            isSelected = NO;
+            isHidden = YES;
+            editBtn.selected =YES;
+            isDelete = YES;
+           [self.tableV reloadData];
+        }
+        else
+        {
+            UIView *backGroundV = [[UIView alloc]initWithFrame:self.view.bounds];
+            backGroundV.backgroundColor = [UIColor blackColor];
+            backGroundV.alpha = 0.5;
+            [self.view addSubview:backGroundV];
+            
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"您确定要删除吗" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                
+                    [backGroundV removeFromSuperview];
+                    isSelected = YES;
+                    isHidden = NO;
+                    isDelete = NO;
+                    editBtn.selected = NO;
+                if (BoolArray.count != 0)
+                {
+                    NSString *deleteIDS;
+                    deleteIDS = [NSString stringWithFormat:@"%@",BoolArray[0]];
+                    for (int i = 1; i < BoolArray.count; i++)
+                    {
+                        NSString  *str =   [deleteIDS stringByAppendingString:[NSString stringWithFormat:@",%@",BoolArray[i]]];
+                        deleteIDS = str;
+                        NSLog(@"%@",deleteIDS);
+                    }
+                    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+                    [paraDic setObject:deleteIDS forKey:@"ids"];
+                    [[NetManager shareManager]requestUrlPost:deletePointAPI andParameter:paraDic withSuccessBlock:^(id data)
+                     {
+                         if ([data[@"status"]isEqualToString:@"9000"])
+                         {
+                             [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"删除成功"];
+                             [BoolArray removeAllObjects];
+                             if ([_btnStatus isEqualToString:@"1"])
+                             {
+                                 [self getAllNetData:allPointAPI];
+                             }
+                             else if ([_btnStatus isEqualToString:@"2"])
+                             {
+                                 [self getAllNetData:getPointAPI];
+                             }
+                             else
+                             {
+                                 [self getAllNetData:outPointAPI];
+                             }
+                             
+                             
+                         }
+                         else if ([data[@"status"]isEqualToString:@"1000"])
+                         {
+                             [BoolArray removeAllObjects];
+                             [self.tableV reloadData];
+                             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                             [alertC addAction:action];
+                             [self presentViewController:alertC animated:YES completion:nil];
+                         }
+                         
+                     }
+                                              andFailedBlock:^(NSError *error)
+                     {
+                         
+                     }];
+
+                }
+                else
+                {
+                    [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"您没有选中任何数据删除"];
+                    editBtn.selected = NO;
+                    
+                }
+                
+                
+                
+                            }];
+            
+            UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                [backGroundV removeFromSuperview];
+                [self.tableV reloadData];
+                isDelete = NO;
+                editBtn.selected = NO;
+            }];
+            [alertC addAction: action];
+            [alertC addAction:action1];
+            [self presentViewController:alertC animated:YES completion:nil];
+        }
+
+    }else
     {
-        UIView *backGroundV = [[UIView alloc]initWithFrame:self.view.bounds];
-        backGroundV.backgroundColor = [UIColor blackColor];
-        backGroundV.alpha = 0.5;
-        [self.view addSubview:backGroundV];
-        
-        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"您确定要删除吗" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *action = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [backGroundV removeFromSuperview];
-            isSelected = YES;
-            isHidden = NO;
-            isDelete = NO;
-            editBtn.selected = NO;
-            [[NetManager shareManager]requestUrlPost:deletePointAPI andParameter:_paramDic withSuccessBlock:^(id data)
-             {
-                 [self.tableV reloadData];
-             }
-                andFailedBlock:^(NSError *error)
-             {
-                 
-             }];
-        }];
-        
-        UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            [backGroundV removeFromSuperview];
-            [self.tableV reloadData];
-            isDelete = NO;
-            editBtn.selected = NO;
-        }];
-        [alertC addAction: action];
-        [alertC addAction:action1];
-        [self presentViewController:alertC animated:YES completion:nil];
+        [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"没有数据,无法进行编辑"];
+        editBtn.selected = NO;
+
     }
     
 }
@@ -249,20 +318,20 @@
     {
         selectBtn.selected = NO;
     }
-    NSMutableArray *temArr = [NSMutableArray array];
+    
     if (selectBtn.selected == YES)
     {
-      [temArr addObject:[_dataArr[selectBtn.tag - 10000] id]];
-        [_paramDic setObject:[_dataArr[selectBtn.tag - 10000]id] forKey:[NSString stringWithFormat:@"%ld",temArr.count]];
+      [BoolArray addObject:[_dataArr[selectBtn.tag - 10000] id]];
+        
     }
     else
     {
-        for (NSInteger i = temArr.count - 1; i >= 0; i --)
+        for (NSInteger i = BoolArray.count - 1; i >= 0; i --)
         {
-            if ([[_dataArr[selectBtn.tag - 10000]id] isEqualToString:temArr[i]])
+            if ([[NSString stringWithFormat:@"%@",[_dataArr[selectBtn.tag - 10000]id]] isEqualToString:[NSString stringWithFormat:@"%@",BoolArray[i]]])
             {
-                [_paramDic removeObjectForKey:[NSString stringWithFormat:@"%ld",i + 1]];
-                [temArr removeObjectAtIndex:i];
+                
+                [BoolArray removeObjectAtIndex:i];
             }
         }
     }
@@ -277,6 +346,7 @@
         btn.selected = NO;
     }
     selectBtn.selected = YES;
+    _btnStatus = @"1";
 }
 #pragma mark 获取收入积分
 - (void)getData:(UIButton *)selectBtn
@@ -288,6 +358,8 @@
         btn.selected = NO;
     }
     selectBtn.selected = YES;
+    
+    _btnStatus = @"2";
 }
 #pragma mark 获取支出积分
 - (void)outData:(UIButton *)selectBtn
@@ -299,26 +371,43 @@
         btn.selected = NO;
     }
     selectBtn.selected = YES;
+    _btnStatus = @"3";
 }
 
 - (void)getAllNetData:(NSString *)dataApi
 {
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:@"0" forKey:@"id"];
+    [paraDic setObject:userid forKey:@"id"];
     [paraDic setObject:@"0" forKey:@"page"];
     [[NetManager shareManager]requestUrlPost:dataApi andParameter:paraDic withSuccessBlock:^(id data)
      {
-         NSLog(@"%@",data);
-         pointL.text = data[@"data"][@"integral"];
-         NSArray *tempArr = data[@"data"][@"detail"];
-         for (NSDictionary *dic in tempArr)
+         NSMutableArray *tempArray = [NSMutableArray array];
+         if ([data[@"status"]isEqualToString:@"9000"])
          {
-             PointModel *model = [[PointModel alloc]initWithDictionary:dic error:nil];
-             [_dataArr addObject:model];
+             _tableV.hidden = NO;
+             NSArray *tempArr = data[@"data"][@"detail"];
+             for (NSDictionary *dic in tempArr)
+             {
+                 PointModel *model = [[PointModel alloc]initWithDictionary:dic error:nil];
+                
+                 [tempArray addObject:model];
+                 _dataArr = tempArray;
+             }
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self.tableV reloadData];
+             });
          }
-         dispatch_async(dispatch_get_main_queue(), ^{
-             [self.tableV reloadData];
-         });
+         else if ([data[@"status"]isEqualToString:@"1000"])
+         {
+             _tableV.hidden = YES;
+             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+             [alertC addAction:action];
+             [self presentViewController:alertC animated:YES completion:nil];
+         }
+         
      }
     andFailedBlock:^(NSError *error)
      {

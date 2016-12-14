@@ -34,7 +34,7 @@
         [self.contentView addSubview:_tf];
         
         _imageV = [[UIImageView alloc]initWithFrame:CGRectMake(SCREENW - 33, 20, 10, 18)];
-        _imageV.image = [UIImage imageNamed:@"arrow_right@2x"];
+        _imageV.image = [UIImage imageNamed:@"arrow_right"];
         [self.contentView addSubview:_imageV];
     }
     return self;

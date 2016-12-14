@@ -7,12 +7,17 @@
 //
 
 #import "ForgetPassWordViewController.h"
+#import "NetManager.h"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
+#define forgetPassWordAPI @"http://115.29.246.88:9999/account/lospass"
 
 @interface ForgetPassWordViewController ()
+{
+    UITextField *ManIdTF;
+}
 
 @end
 
@@ -37,7 +42,7 @@
 - (void)configUI
 {
     self.view.backgroundColor = RGB(238, 238, 238);
-    UITextField *ManIdTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 94*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE)];
+    ManIdTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 94*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE)];
     ManIdTF.backgroundColor = [UIColor whiteColor];
     UIView *paddingV = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 23*SCREENW_RATE, 24*SCREENW_RATE)];
     paddingV.backgroundColor = [UIColor whiteColor];
@@ -75,12 +80,68 @@
     [finishBtn setTitle:@"完成" forState:UIControlStateNormal];
     [finishBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
     finishBtn.titleLabel.font = [UIFont systemFontOfSize:16];
+    [finishBtn addTarget:self action:@selector(finish:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:finishBtn];
 }
 
 - (void)goBack
 {
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)finish:(UIButton *)selectedBtn
+{
+    selectedBtn.userInteractionEnabled = NO;
+    UITextField *telNumTF = [self.view viewWithTag:100];
+    UITextField *yzmTf = [self.view viewWithTag:101];
+    UITextField *newPassWD = [self.view viewWithTag:102];
+    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+    [paraDic setObject:ManIdTF.text forKey:@"idcard"];
+    [paraDic setObject:telNumTF.text forKey:@"mobile"];
+    [paraDic setObject:yzmTf.text forKey:@"yzm"];
+    [paraDic setObject:newPassWD.text forKey:@"newpass"];
+    if (ManIdTF.text.length && telNumTF.text.length && yzmTf.text.length && newPassWD.text.length != 0)
+    {
+        [[NetManager shareManager]requestUrlPost:forgetPassWordAPI andParameter:paraDic withSuccessBlock:^(id data)
+        {
+            selectedBtn.userInteractionEnabled = YES;
+            if ([data[@"status"]isEqualToString:@"9000"])
+            {
+                NSLog(@"%@",data);
+                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"设置成功" preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                    [self.navigationController popViewControllerAnimated:YES];
+                }];
+                [alertC addAction:action];
+                [self presentViewController:alertC animated:YES completion:^{
+                    
+                }];
+                
+            }
+            
+            else if ([data[@"status"]isEqualToString:@"1000"])
+            {
+                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                [alertC addAction:action];
+                [self presentViewController:alertC animated:YES completion:nil];
+            }
+
+        }
+        andFailedBlock:^(NSError *error)
+        {
+            selectedBtn.userInteractionEnabled = YES;
+           
+        }];
+    }
+    else
+    {
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"身份证号码/手机号码/验证码/以及新的密码都必须填写" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *action = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+        [alertC addAction:action];
+        [self presentViewController:alertC animated:YES completion:nil];
+
+    }
 }
 
 - (void)didReceiveMemoryWarning {

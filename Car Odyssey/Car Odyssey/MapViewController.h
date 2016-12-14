@@ -11,9 +11,21 @@
 #import <AMapFoundationKit/AMapFoundationKit.h>
 #import <MAMapKit/MAMapKit.h>
 
-@interface MapViewController : UIViewController<MAMapViewDelegate>
+@interface MapViewController : UIViewController
 @property (nonatomic,strong)MAMapView *mapView;
 @property (nonatomic,copy)NSString *str;
+@property (nonatomic,copy)NSString *resetStr;
+@property (nonatomic,copy)NSString *outsetStr;
+@property (nonatomic,copy)NSString *finishStr;
+@property (nonatomic,copy)NSString *orderID;
+@property (nonatomic,copy)NSString *fareStr;
+@property (nonatomic,copy)NSString *coustomNumStr;
+@property (nonatomic,copy)NSString *destinationLat;
+@property (nonatomic,copy)NSString *destinationlng;
+@property (nonatomic,copy)NSString *startLat;
+@property (nonatomic,copy)NSString *startLng;
+
+
 
 //- (void)returnAction;
 

@@ -26,7 +26,7 @@
         
         UIImageView *blueV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 10*SCREENW_RATE)];
         blueV.center  = CGPointMake(20*SCREENW_RATE, 25*SCREENW_RATE);
-        blueV.image = [UIImage imageNamed:@"blue0@2x"];
+        blueV.image = [UIImage imageNamed:@"blue0"];
         [self.contentView addSubview:blueV];
         
         _titleL = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+8*SCREENW_RATE, 0, 200*SCREENW_RATE, 50*SCREENW_RATE)];

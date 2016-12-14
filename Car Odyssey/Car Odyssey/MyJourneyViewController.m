@@ -11,8 +11,12 @@
 #import "DetailListViewController.h"
 #import "NetManager.h"
 #import "JourneyModel.h"
-#define JourneyAPI @"http://139.196.179.91/carmanl/public/center/order"
-#define DeleteAPI @"http://139.196.179.91/carmanl/public/center/delorder"
+#import "Ultitly.h"
+#import <MJRefresh.h>
+#define JourneyAPI @"http://115.29.246.88:9999/center/order"
+#define DeleteAPI @"http://115.29.246.88:9999/center/delorder"
+#define NotStartAPI @"http://115.29.246.88:9999/center/un_order"
+#define CancelAPI @"http://115.29.246.88:9999/center/order_cancel"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -20,38 +24,51 @@
 
 @interface MyJourneyViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
-    BOOL isClick ;
-    BOOL isPress ;
+    BOOL isClick;
+    BOOL isPress;
+    
+    int page;
+    BOOL isFirstCome;
+    int totalPage;
+    BOOL isJuHua;
+    
+    UIView *btnLine;
+    UIButton *editBtn;
     NSMutableArray *BoolArray;
-    NSMutableDictionary *paraDic;
 }
 @property (nonatomic,strong)UITableView *tableV;
-@property (nonatomic,strong)NSMutableArray *timeArr;
+@property (nonatomic,strong)NSMutableArray *dataArray;
 @property (nonatomic,strong)JourneyModel *Jmodel;
+@property (nonatomic,copy)NSString *maxtime;
 @end
 
 @implementation MyJourneyViewController
 
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    isFirstCome = YES;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.tableV.mj_header beginRefreshing];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    page = 0;
+    isFirstCome = YES;
+    isJuHua = NO;
     [self configNav];
     [self configUI];
 }
 
 - (void)configNav
 {
-    NSMutableDictionary *parameterDic = [NSMutableDictionary dictionary];
-    [parameterDic setObject:@"1" forKey:@"id"];
-    [parameterDic setObject:@"0" forKey:@"page"];
-    [[NetManager shareManager]requestUrlPost:JourneyAPI andParameter:parameterDic withSuccessBlock:^(id data)
-    {
-        NSLog(@"%@",data);
-    }
-       andFailedBlock:^(NSError *error)
-     {
-         NSLog(@"%@",error);
-    }];
+    
     self.navigationController.navigationBarHidden = NO;
     self.navigationController.navigationBar.barTintColor = RGB(37, 155, 255);
     self.view.backgroundColor = RGB(238, 238, 238);
@@ -66,20 +83,69 @@
     @{NSFontAttributeName:[UIFont systemFontOfSize:18],
     NSForegroundColorAttributeName:RGB(255, 255, 255)}];
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStyleDone target:self action:@selector(edit)];
-    [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
-//    BoolArray = [NSMutableArray arrayWithObjects:@NO,@NO,@NO,@NO,@NO,@NO, nil];
+    editBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    editBtn.frame = CGRectMake(0, 0, 40, 40);
+    editBtn.titleLabel.font = [UIFont systemFontOfSize:14];
+    [editBtn setTitle:@"编辑" forState:UIControlStateNormal];
+    [editBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
+    [editBtn addTarget:self action:@selector(edit) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:editBtn];
+   
     BoolArray = [NSMutableArray array];
     isClick = YES;
     isPress = NO;
+    
+    //创建点击按钮
+    NSArray *btnTitleArr = @[@"我的预约",@"我已完成",@"申请取消"];
+    for (int i = 0; i < 3; i ++)
+    {
+        UIButton *jonuneyBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        jonuneyBtn.frame = CGRectMake(SCREENW/3 * i, 64, SCREENW/3, 40*SCREENW_RATE);
+        jonuneyBtn.backgroundColor = [UIColor whiteColor];
+        jonuneyBtn.titleLabel.font = [UIFont systemFontOfSize:15*SCREENW_RATE];
+        jonuneyBtn.tag = 100 + i;
+        [jonuneyBtn setTitle:btnTitleArr[i] forState:UIControlStateNormal];
+        [jonuneyBtn setTitleColor:RGB(51, 51, 51) forState:UIControlStateNormal];
+        [jonuneyBtn setTitleColor:RGB(68, 156, 255) forState:UIControlStateSelected];
+        if (i == 0)
+        {
+            jonuneyBtn.selected = YES;
+            
+        }
+        [jonuneyBtn addTarget:self action:@selector(clickBtn:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:jonuneyBtn];
+    }
+    
+    UIButton *imediatelyBtn = [self.view viewWithTag:100];
+    btnLine = [[UIView alloc]initWithFrame:CGRectMake(10*SCREENW_RATE, CGRectGetMaxY(imediatelyBtn.frame)-2, 90*SCREENW_RATE, 2*SCREENW_RATE)];
+    btnLine.backgroundColor = RGB(68, 156, 255);
+    [self.view addSubview:btnLine];
+    
+    UIButton *finishBtn = [self.view viewWithTag:101];
+    if (finishBtn.selected == NO)
+    {
+        editBtn.hidden = YES;
+    }
+    else
+    {
+        editBtn.hidden = NO;
+    }
 }
 
 - (void)configUI
 {
-    [self acquireData];
-    _timeArr = [NSMutableArray array];
-    paraDic = [NSMutableDictionary dictionary];
+   
+    _dataArray = [NSMutableArray array];
+    
+    UILabel *alertLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 200*SCREENW_RATE, 50*SCREENW_RATE)];
+    alertLabel.center = CGPointMake(self.view.center.x, self.view.center.y);
+    alertLabel.textColor = RGB(51, 51, 51);
+    alertLabel.text = @"暂时没有数据信息哟~~~";
+    [self.view addSubview:alertLabel];
+    
     [self.view addSubview:self.tableV];
+    [self acquireData:NotStartAPI andRefresh:YES];
+
 }
 
 - (void)back
@@ -87,23 +153,96 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
-- (void)acquireData
+- (void)endRefresh
 {
+    if (page == 0)
+    {
+        [self.tableV.mj_header endRefreshing];
+    }
+    [self.tableV.mj_footer endRefreshing];
+}
+
+- (void)acquireData:(NSString *)url andRefresh:(BOOL)isRefrsh
+{
+    if (isRefrsh)
+    {
+        page = 0;
+        isFirstCome = YES;
+    }
+    else
+    {
+        page++;
+    }
+    
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *parameterDic = [NSMutableDictionary dictionary];
-    [parameterDic setObject:@"1" forKey:@"id"];
-    [parameterDic setObject:@"0" forKey:@"page"];
-    [[NetManager shareManager]requestUrlPost:JourneyAPI andParameter:parameterDic withSuccessBlock:^(id data)
+    [parameterDic setObject:userid forKey:@"id"];
+    [parameterDic setObject:[NSString stringWithFormat:@"%d",page] forKey:@"page"];
+    [[NetManager shareManager]requestUrlPost:url andParameter:parameterDic withSuccessBlock:^(id data)
      {
-         NSLog(@"%@",data);
-         NSArray *tempArr = data[@"data"][@"order"];
-         for (NSDictionary *dic in tempArr)
+         [self endRefresh];
+         isJuHua = NO;
+         if ([data[@"status"]isEqualToString:@"9000"])
          {
-             _Jmodel = [[JourneyModel alloc]initWithDictionary:dic error:nil];
-             [_timeArr addObject:_Jmodel];
+             _tableV.hidden = NO;
+             NSArray *tempArr = data[@"data"][@"detail"];
+             NSMutableArray *tempArray = [NSMutableArray array];
+             for (NSDictionary *dic in tempArr)
+             {
+                 _Jmodel = [[JourneyModel alloc]init];
+                 _Jmodel.usetime = dic[@"usetime"];
+                 _Jmodel.status = dic[@"status"];
+                 _Jmodel.odetail = dic[@"odetail"];
+                 _Jmodel.fdetail = dic[@"fdetail"];
+                 _Jmodel.mileage = dic[@"mileage"];
+                 _Jmodel.order_sn = dic[@"order_sn"];
+                 _Jmodel.name = dic[@"name"];
+                 _Jmodel.mobile = dic[@"mobile"];
+                 _Jmodel.product_type = dic[@"product_type"];
+                 _Jmodel.order_type = dic[@"order_type"];
+                 _Jmodel.models = dic[@"models"];
+                 _Jmodel.num = dic[@"num"];
+                 _Jmodel.lng = dic[@"lng"];
+                 _Jmodel.lat = dic[@"lat"];
+                 _Jmodel.create = dic[@"create"];
+                 _Jmodel.remark = dic[@"remark"];
+                 _Jmodel.id = dic[@"id"];
+                 _Jmodel.iscancel = dic[@"iscancel"];
+                 _Jmodel.cost = dic[@"cost"];
+                 _Jmodel.idling_cost = dic[@"idling_cost"];
+                 _Jmodel.stay_cost = dic[@"stay_cost"];
+                 _Jmodel.parking_cost = dic[@"parking_cost"];
+                 _Jmodel.food_cost = dic[@"food_cost"];
+                 _Jmodel.bill_cost = dic[@"bill_cost"];
+                 _Jmodel.face_cost = dic[@"face_cost"];
+                 _Jmodel.over_mileage_cost = dic[@"over_mileage_cost"];
+                 _Jmodel.over_time_cost = dic[@"over_time_cost"];
+                 _Jmodel.highroad_cost = dic[@"highroad_cost"];
+                 _Jmodel.night_cost = dic[@"night_cost"];
+                 _Jmodel.other_cost = dic[@"oter_cost"];
+                 _Jmodel.trip_id = dic[@"trip_id"];
+                 _Jmodel.order_id = dic[@"id"];
+                 _Jmodel.lat_end = dic[@"lat_end"];
+                 _Jmodel.lng_end = dic[@"lng_end"];
+                 
+                 [tempArray addObject:_Jmodel];
+                 _dataArray = tempArray;
+             }
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self.tableV reloadData];
+             });
+             isFirstCome = NO;
          }
-         dispatch_async(dispatch_get_main_queue(), ^{
-             [self.tableV reloadData];
-         });
+         else if ([data[@"status"]isEqualToString:@"1000"])
+         {
+             _tableV.hidden = YES;
+             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+             [alertC addAction:action];
+             [self presentViewController:alertC animated:YES completion:nil];
+         }
+         
      }
         andFailedBlock:^(NSError *error)
      {
@@ -115,7 +254,8 @@
 {
     if (!_tableV)
     {
-        _tableV = [[UITableView alloc]initWithFrame:CGRectMake(10*SCREENW_RATE, 15*SCREENW_RATE, 355*SCREENW_RATE, SCREENH) style:UITableViewStylePlain];
+        UIButton *statusBtn = [self.view viewWithTag:100];
+        _tableV = [[UITableView alloc]initWithFrame:CGRectMake(10*SCREENW_RATE, CGRectGetMaxY(statusBtn.frame)+15*SCREENW_RATE, 355*SCREENW_RATE, SCREENH - 120*SCREENW_RATE) style:UITableViewStylePlain];
         _tableV.delegate = self;
         _tableV.dataSource = self;
         _tableV.backgroundColor = RGB(238, 238, 238);
@@ -131,7 +271,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _timeArr.count;
+    return _dataArray.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -146,7 +286,7 @@
     cell.layer.cornerRadius = 5;
     cell.backgroundColor = [UIColor clearColor];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    cell.model = _timeArr[indexPath.row];
+    cell.model = _dataArray[indexPath.row];
     cell.editBtn.hidden = isClick;
     cell.editBtn.selected = NO;
     cell.editBtn.tag = 1000+indexPath.row;
@@ -154,55 +294,85 @@
     return cell;
     }
 
-- (void)viewWillDisappear:(BOOL)animated
-{
-    [super viewWillDisappear:animated];
-    
-}
 
+- (void)checkBtnStatus
+{
+    UIButton *finishBtn = [self.view viewWithTag:101];
+    if (finishBtn.selected == NO)
+    {
+        editBtn.hidden = YES;
+    }
+    else
+    {
+        editBtn.hidden = NO;
+    }
+}
 
 #pragma mark 删除cell操作
 
 - (void)delete
 {
-    UIView *backGroundV = [[UIView alloc]initWithFrame:self.view.bounds];
-    backGroundV.backgroundColor = [UIColor blackColor];
-    backGroundV.alpha = 0.5;
-    [self.view addSubview:backGroundV];
-    
-    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"您确认要删除吗" preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
+    if (_dataArray.count != 0)
     {
-        [backGroundV removeFromSuperview];
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStyleDone target:self action:@selector(edit)];
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
-        isClick = YES;
-        //    for (NSInteger i = BoolArray.count - 1 ; i >= 0; i --)
-        //    {
-        //        if ([BoolArray[i]boolValue] == YES) {
-        //            [_timeArr removeObjectAtIndex:i];
-        //        }
-        //   }
-        [[NetManager shareManager]requestUrlPost:DeleteAPI andParameter:paraDic withSuccessBlock:^(id data)
-         {
-             
-         }
-         andFailedBlock:^(NSError *error)
-         {
-             NSLog(@"%@",error);
-         }];
-        [self.tableV reloadData];
-    }];
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-        [backGroundV removeFromSuperview];
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStyleDone target:self action:@selector(edit)];
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
-        isClick = YES;
-        [self.tableV reloadData];
-    }];
-    [alertC addAction:action1];
-    [alertC addAction:cancel];
-    [self presentViewController:alertC animated:YES completion:nil];
+        UIView *backGroundV = [[UIView alloc]initWithFrame:self.view.bounds];
+        backGroundV.backgroundColor = [UIColor blackColor];
+        backGroundV.alpha = 0.5;
+        [self.view addSubview:backGroundV];
+        
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"您确认要删除吗" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
+                                  {
+                                      [backGroundV removeFromSuperview];
+                                      self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStyleDone target:self action:@selector(edit)];
+                                      [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:15],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
+                                      isClick = YES;
+                                      NSString *deleteIDS;
+                                      deleteIDS = [NSString stringWithFormat:@"%@",BoolArray[0]];
+                                      for (int i = 1; i < BoolArray.count; i ++)
+                                      {
+                                   NSString  *str =   [deleteIDS stringByAppendingString:[NSString stringWithFormat:@",%@",BoolArray[i]]];
+                                          deleteIDS = str;
+                                          NSLog(@"%@",deleteIDS);
+                                      }
+                                      NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+                                      [paraDic setObject:deleteIDS forKey:@"ids"];
+                                      [[NetManager shareManager]requestUrlPost:DeleteAPI andParameter:paraDic withSuccessBlock:^(id data)
+                                       {
+            if ([data[@"status"]isEqualToString:@"9000"])
+            {
+                    [BoolArray removeAllObjects];
+                    [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"删除成功"];
+                    [self acquireData:JourneyAPI andRefresh:YES];
+                                           }
+                                           else
+                                           {
+                                               [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:data[@"msg"]];
+                                               [self.tableV reloadData];
+                                           }
+            }
+                                                                andFailedBlock:^(NSError *error)
+                                       {
+                                           NSLog(@"%@",error);
+                                       }];
+                                     
+                                  }];
+        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            [BoolArray removeAllObjects];
+            [backGroundV removeFromSuperview];
+            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStyleDone target:self action:@selector(edit)];
+            [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
+            isClick = YES;
+            [self.tableV reloadData];
+        }];
+        [alertC addAction:action1];
+        [alertC addAction:cancel];
+        [self presentViewController:alertC animated:YES completion:nil];
+    }
+    else
+    {
+        [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"没有任何数据,无法删除"];
+    }
+   
 }
 
 - (void)edit
@@ -215,7 +385,7 @@
 
 - (void)press:(UIButton *)selectedBtn
 {
-//    BoolArray[selectedBtn.tag - 1000] = @(![BoolArray[selectedBtn.tag - 1000]boolValue]);
+
     if (selectedBtn.selected == NO)
     {
         selectedBtn.selected = YES;
@@ -227,29 +397,114 @@
     
     if (selectedBtn.selected == YES)
     {
-        [BoolArray addObject:[_timeArr[selectedBtn.tag - 1000]number]];
-        [paraDic setObject:[_timeArr[selectedBtn.tag - 1000]number] forKey:[NSString stringWithFormat:@"%ld",BoolArray.count]];
+        [BoolArray addObject:[_dataArray[selectedBtn.tag - 1000]trip_id]];
+//        [paraDic setObject:[_dataArray[selectedBtn.tag - 1000]trip_id] forKey:[NSString stringWithFormat:@"%ld",BoolArray.count]];
+        NSLog(@"%@",BoolArray);
     }
     else
     {
         for (NSInteger i = BoolArray.count - 1;i >=  0 ;i -- )
         {
-            if ([[_timeArr[selectedBtn.tag - 1000]number] isEqualToString:BoolArray[i]])
+            if ([[NSString stringWithFormat:@"%@",[_dataArray[selectedBtn.tag - 1000]trip_id]] isEqualToString:[NSString stringWithFormat:@"%@",BoolArray[i]]])
             {
-                [paraDic removeObjectForKey:[NSString stringWithFormat:@"%ld",i+1]];
                 [BoolArray removeObjectAtIndex:i];
             }
         }
+        NSLog(@"%@",BoolArray);
     }
-    
+}
+
+- (void)clickBtn:(UIButton *)clickButton
+{
+    for (UIView *view in self.view.subviews)
+    {
+        if ([view isKindOfClass:[UIButton class]])
+        {
+            UIButton *btn = (UIButton *)view;
+            if ([btn isEqual:clickButton])
+            {
+                btn.selected = YES;
+            }
+            else
+            {
+                btn.selected = NO;
+            }
+        }
+        
+        [self checkBtnStatus];
+        
+        [UIView animateWithDuration:0.3f animations:^{
+            
+            CGRect frame = btnLine.frame;
+            
+            frame.origin.x = clickButton.frame.origin.x + 15*SCREENW_RATE;
+            
+            btnLine.frame = frame;
+            
+        }];
+    }
+    switch (clickButton.tag)
+    {
+        case 100:
+        {
+            [self acquireData:NotStartAPI andRefresh:YES];
+        }
+            break;
+        case 101:
+        {
+            [self acquireData:JourneyAPI andRefresh:YES];
+        }
+            break;
+        case 102:
+        {
+            [self acquireData:CancelAPI andRefresh:YES];
+        }
+            break;
+        default:
+            break;
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    DetailListViewController *detialVC = [[DetailListViewController alloc]init];
-    detialVC.model = _Jmodel;
-    [self.navigationController pushViewController:detialVC animated:YES];
+    UIButton *yuYueBtn = [self.view viewWithTag:100];
+    UIButton *finishBtn = [self.view viewWithTag:101];
+    UIButton *cancelBtn = [self.view viewWithTag:102];
+    if (yuYueBtn.selected == YES)
+    {
+        DetailListViewController *detialVC = [[DetailListViewController alloc]init];
+        detialVC.orderModel = _dataArray[indexPath.row];
+        if ([[NSString stringWithFormat:@"%@",[_dataArray[indexPath.row]iscancel]]isEqualToString:@"1"])
+        {
+            detialVC.orderModel.status = @"";
+            [self.navigationController pushViewController:detialVC animated:YES];
+        }
+        else
+        {
+            detialVC.orderModel.status = @"2";
+            [self.navigationController pushViewController:detialVC animated:YES];
+        }
+        
+    }
+    else if (finishBtn.selected == YES)
+    {
+        DetailListViewController *detialVC = [[DetailListViewController alloc]init];
+        detialVC.orderModel = _dataArray[indexPath.row];
+        detialVC.orderModel.status = @"3";
+        [self.navigationController pushViewController:detialVC animated:YES];
+    }
+    else if (cancelBtn.selected == YES)
+    {
+        
+         DetailListViewController *detialVC = [[DetailListViewController alloc]init];
+        detialVC.orderModel = _dataArray[indexPath.row];
+        detialVC.orderModel.status = @"";
+        [self.navigationController pushViewController:detialVC animated:YES];
+    }
+    
 }
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

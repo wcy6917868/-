@@ -43,68 +43,70 @@
 
 - (void)configUI
 {
-    UILabel *travelInfoL = [[UILabel alloc]initWithFrame:CGRectMake(0, 64*SCREENW_RATE, SCREENW, 44*SCREENW_RATE)];
+    UIScrollView *scroView = [[UIScrollView alloc]initWithFrame:self.view.bounds];
+    [self.view addSubview:scroView];
+    
+    UILabel *travelInfoL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0*SCREENW_RATE, SCREENW, 44*SCREENW_RATE)];
     travelInfoL.backgroundColor = [UIColor whiteColor];
     travelInfoL.textColor = RGB(51, 51, 51);
-    travelInfoL.font = [UIFont systemFontOfSize:14];
+    travelInfoL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
     travelInfoL.text = @"       行程信息";
-    [self.view addSubview:travelInfoL];
+    [scroView addSubview:travelInfoL];
     
-    NSArray *travelInfoArr = @[@"上车地点",@"详细地址",@"到达城市",@"下车地点",@"详细地址"];
-    NSArray *travelInfo1Arr = @[_Jmodel.outset,_Jmodel.fdetail,_Jmodel.city,_Jmodel.finish,_Jmodel.fdetail];
-    
-    for (int i = 0; i < 5; i ++)
+    NSArray *travelInfoArr = @[@"上车地点",@"下车地点"];
+    NSArray *travelInfo1Arr = @[_orderModel.odetail,_orderModel.fdetail];
+ 
+    for (int i = 0; i < travelInfoArr.count; i ++)
     {
         UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(travelInfoL.frame)+(1+i*30)*SCREENW_RATE, SCREENW, 30*SCREENW_RATE)];
         label.tag = 100 + i;
         label.backgroundColor = [UIColor whiteColor];
         label.textColor = RGB(51, 51, 51);
-        label.font = [UIFont systemFontOfSize:14];
+        label.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
         label.text = [NSString stringWithFormat:@"       %@ : %@",travelInfoArr[i],travelInfo1Arr[i]];
-        if (i == 2)
-        {
-            NSString *str =[NSString stringWithFormat:@"       %@ : %@",travelInfoArr[2],travelInfo1Arr[2]];
-            NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
-            NSRange blueRange = NSMakeRange([[str1 string]rangeOfString:travelInfo1Arr[2]].location,[[str1 string]rangeOfString:travelInfo1Arr[2]].length);
-            [str1 addAttribute:NSForegroundColorAttributeName value:RGB(37, 155, 255) range:blueRange];
-            label.attributedText = str1;
-        }
-        [self.view addSubview:label];
+        [scroView addSubview:label];
     }
-    UILabel *lastL = [self.view viewWithTag:104];
     
+    UILabel *lastL = [self.view viewWithTag:101];
     UILabel *listL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(lastL.frame)+5*SCREENW_RATE, SCREENW, 45*SCREENW_RATE)];
     listL.textColor = RGB(51, 51, 51);
     listL.backgroundColor = [UIColor whiteColor];
-    listL.font = [UIFont systemFontOfSize:14];
+    listL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
     listL.text = @"       订单详情";
-    [self.view addSubview:listL];
+    [scroView addSubview:listL];
     
-    NSArray *detailInfoArr = @[@"订单号",@"预定信息",@"姓名",@"手机",@"用车时间",@"预定产品",@"产品类型",@"车型",@"租期",@"价格",@"包车类型",@"行程备注"];
-    NSArray *detailInfoArr1 = @[_Jmodel.id,_Jmodel.reserve,_Jmodel.name,_Jmodel.mobile,_Jmodel.usetime,_Jmodel.product,_Jmodel.ptype,_Jmodel.models,_Jmodel.term,_Jmodel.price,_Jmodel.type,_Jmodel.remark];
+    NSDictionary *productDic = @{@"1":@"常规单",@"2":@"国内日租",@"3":@"国内送机",@"4":@"国内接机"};
+    NSDictionary *orderDic = @{@"1":@"常规单",@"2":@"日租单",@"3":@"预约单"};
+    NSDictionary *modelDic = @{@"0":@"不限",@"1":@"经济型",@"2":@"舒适性",@"3":@"商务型",@"4":@"豪华型"};
     
-    for (int i = 0; i < 12; i ++)
+    NSDate *createDate = [NSDate dateWithTimeIntervalSince1970:[_orderModel.create doubleValue]];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc]init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+     NSString *createTime = [dateFormatter stringFromDate:createDate];
+    
+    NSArray *detailInfoArr = @[@"订单号",@"姓名",@"手机",@"用车时间",@"预定产品",@"车型",@"订单类型",@"乘客数",@"创建日",@"行程备注"];
+    NSArray *detailInfoArr1 = @[_orderModel.order_sn,_orderModel.name,_orderModel.mobile,_orderModel.usetime,[productDic objectForKey:[NSString stringWithFormat:@"%@",_orderModel.order_type]],[modelDic objectForKey:[NSString stringWithFormat:@"%@",_orderModel.models]],[orderDic objectForKey:[NSString stringWithFormat:@"%@",_orderModel.order_type]],[NSString stringWithFormat:@"%@ 人",_orderModel.num],createTime,_orderModel.remark];
+    
+    for (int i = 0; i < detailInfoArr.count; i ++)
     {
         UILabel *label1 = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(listL.frame)+(1+i*30)*SCREENW_RATE, SCREENW, 30*SCREENW_RATE)];
         label1.backgroundColor = [UIColor whiteColor];
-       
-        label1.font = [UIFont systemFontOfSize:14];
+        label1.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
         label1.textColor = RGB(51, 51, 51);
         NSString *str = [NSString stringWithFormat:@"       %@ : %@",detailInfoArr[i],detailInfoArr1[i]];
         NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
         NSRange grayRange = NSMakeRange([[str1 string]rangeOfString:detailInfoArr1[i]].location, [[str1 string]rangeOfString:detailInfoArr1[i]].length);
         [str1 addAttribute:NSForegroundColorAttributeName value:RGB(136, 136, 136) range:grayRange];
-        if (i == 11)
+        if (i == detailInfoArr.count - 1)
         {
             label1.numberOfLines = 0;
             CGSize labelSize = [str1 boundingRectWithSize:CGSizeMake(SCREENW, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-            label1.frame = CGRectMake(0, CGRectGetMaxY(listL.frame)+(1+11*30)*SCREENW_RATE, SCREENW, labelSize.height+10);
-            
+            label1.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
+            label1.frame = CGRectMake(0, CGRectGetMaxY(listL.frame)+((detailInfoArr.count - 1)*30)*SCREENW_RATE, SCREENW, labelSize.height+10*SCREENW_RATE);
         }
         label1.attributedText = str1;
-        [self.view addSubview:label1];
+        [scroView addSubview:label1];
     }
-    
 }
 
 - (void)back

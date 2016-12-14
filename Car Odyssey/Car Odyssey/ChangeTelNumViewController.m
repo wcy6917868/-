@@ -13,8 +13,8 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define changeTelNumTestAPI @"http://139.196.179.91/carmanl/public/center/mobcode"
-#define changeTelNumAPI @"http://139.196.179.91/carmanl/public/center/mobile"
+#define changeTelNumTestAPI @"http://115.29.246.88:9999/center/mobcode"
+#define changeTelNumAPI @"http://115.29.246.88:9999/center/mobile"
 @interface ChangeTelNumViewController ()<UITextFieldDelegate>
 {
     BOOL telNumBool;
@@ -94,7 +94,7 @@
     [joinBtn setTitle:@"加入车漫行" forState:UIControlStateNormal];
     joinBtn.titleLabel.font = [UIFont systemFontOfSize:18];
     [joinBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-    [joinBtn addTarget:self action:@selector(gogogo) forControlEvents:UIControlEventTouchUpInside];
+    [joinBtn addTarget:self action:@selector(gogogo:) forControlEvents:UIControlEventTouchUpInside];
     joinBtn.tag = 102;
     [self.view addSubview:joinBtn];
     telNumBool = NO;
@@ -112,40 +112,52 @@
     UITextField *tf = [self.view viewWithTag:100];
     if (tf.text.length > 0)
     {
+        getNumBtn.userInteractionEnabled = NO;
         NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
         [paraDic setObject:tf.text forKey:@"mobile"];
         [[NetManager shareManager]requestUrlPost:changeTelNumTestAPI andParameter:paraDic withSuccessBlock:^(id data)
          {
-             
+              getNumBtn.userInteractionEnabled = YES;
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 __block NSInteger time = 59; //倒计时时间
+                 dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+                 dispatch_source_t _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+                 dispatch_source_set_timer(_timer,dispatch_walltime(NULL, 0),1.0*NSEC_PER_SEC, 0); //每秒执行
+                 dispatch_source_set_event_handler(_timer, ^{
+                     if(time <= 0){ //倒计时结束，关闭
+                         dispatch_source_cancel(_timer);
+                         dispatch_async(dispatch_get_main_queue(), ^{
+                             getNumBtn.backgroundColor = RGB(37, 155, 255);
+                             [getNumBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
+                             getNumBtn.userInteractionEnabled = YES;
+                         });
+                     }else{
+                         int seconds = time % 2333;
+                         dispatch_async(dispatch_get_main_queue(), ^{
+                             //设置按钮显示读秒效果
+                             getNumBtn.backgroundColor = RGB(204, 204, 204);
+                             [getNumBtn setTitle:[NSString stringWithFormat:@"%d 秒",seconds] forState:UIControlStateNormal];
+                             getNumBtn.userInteractionEnabled = NO;
+                         });
+                         time--;
+                     }
+                 });
+                 dispatch_resume(_timer);
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
          }
           andFailedBlock:^(NSError *error)
          {
-             
+              getNumBtn.userInteractionEnabled = YES;
          }];
-        __block NSInteger time = 59; //倒计时时间
-        dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        dispatch_source_t _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
-        dispatch_source_set_timer(_timer,dispatch_walltime(NULL, 0),1.0*NSEC_PER_SEC, 0); //每秒执行
-        dispatch_source_set_event_handler(_timer, ^{
-            if(time <= 0){ //倒计时结束，关闭
-                dispatch_source_cancel(_timer);
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    getNumBtn.backgroundColor = RGB(37, 155, 255);
-                    [getNumBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
-                    getNumBtn.userInteractionEnabled = YES;
-                });
-            }else{
-                int seconds = time % 2333;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    //设置按钮显示读秒效果
-                    getNumBtn.backgroundColor = RGB(204, 204, 204);
-                    [getNumBtn setTitle:[NSString stringWithFormat:@"%d 秒",seconds] forState:UIControlStateNormal];
-                    getNumBtn.userInteractionEnabled = NO;
-                });
-                time--;
-            }
-        });
-        dispatch_resume(_timer);
+     
     }
     else
     {
@@ -195,21 +207,43 @@
     
 }
 
-- (void)gogogo
+- (void)gogogo:(UIButton *)selectedBtn
 {
+    selectedBtn.userInteractionEnabled = NO;
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
     UITextField *tf = [self.view viewWithTag:100];
     UITextField *tf1 = [self.view viewWithTag:101];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:[Ultitly shareInstance].id forKey:@"id"];
+    [paraDic setObject:userid forKey:@"id"];
     [paraDic setObject:tf.text forKey:@"mobile"];
     [paraDic setObject:tf1.text forKey:@"code"];
     [[NetManager shareManager]requestUrlPost:changeTelNumAPI andParameter:paraDic withSuccessBlock:^(id data)
     {
-        NSLog(@"%@",data);
+        selectedBtn.userInteractionEnabled = YES;
+        if ([data[@"status"]isEqualToString:@"9000"])
+        {
+            NSLog(@"%@",data);
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"手机号码修改成功" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+            [alertC addAction:action];
+            [self presentViewController:alertC animated:YES completion:nil];
+
+            NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+            [ud setObject:tf.text forKey:@"mobile"];
+        }
+        else if ([data[@"status"]isEqualToString:@"1000"])
+        {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+            [alertC addAction:action];
+            [self presentViewController:alertC animated:YES completion:nil];
+        }
     }
       andFailedBlock:^(NSError *error)
     {
-        NSLog(@"%@",error);
+        selectedBtn.selected = YES;
+        
     }];
 }
 - (void)didReceiveMemoryWarning {

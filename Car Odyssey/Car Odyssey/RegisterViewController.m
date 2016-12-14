@@ -15,14 +15,14 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-#define testAPI @"http://139.196.179.91/carmanl/public/account/regcode"
-#define joinAPI @"http://139.196.179.91/carmanl/public/account/codecheck"
-
+#define testAPI @"http://115.29.246.88:9999/account/regcode"
+#define joinAPI @"http://115.29.246.88:9999/account/firstregs"
 
 @interface RegisterViewController ()<UIPickerViewDataSource,UIPickerViewDelegate>
 {
     NSArray *kongjianArr;
     UIButton *getNumBtn;
+    BOOL ChooseCity;
 }
 @property (nonatomic,strong)NSArray *provinceArray;
 @property (nonatomic,strong)UIPickerView *pickerView;
@@ -32,6 +32,8 @@
 @property (nonatomic,strong)UITextField *scanfTF;
 @property (nonatomic,strong)UITextField *telNumTF;
 @property (nonatomic,strong)UITextField *testTF;
+@property (nonatomic,strong)UILabel *cityL;
+@property (nonatomic,strong)NSString *testNumStr;
 
 @end
 
@@ -48,7 +50,7 @@
 
 - (void)createProvinceDataSource
 {
-    _provinceArray = @[@"北京市",@"天津市",@"上海市",@"重庆市",@"河北省",@"河南省",@"云南省",@"辽宁省",@"黑龙江省",@"湖南省",@"安徽省",@"山东省",@"新疆维吾尔自治区",@"江苏省",@"浙江省",@"江西省",@"湖北省",@"广西省",@"甘肃省",@"山西省",@"内蒙古",@"陕西省",@"吉林省",@"福建省",@"贵州省",@"广东省",@"青海省",@"西藏",@"四川省",@"宁夏回族",@"海南省",@"台湾省",@"香港特别行政区",@"澳门特别行政区"];
+    _provinceArray = @[@"北京",@"天津",@"上海",@"重庆",@"河北省",@"河南省",@"云南省",@"辽宁省",@"黑龙江省",@"湖南省",@"安徽省",@"山东省",@"新疆维吾尔自治区",@"江苏省",@"浙江省",@"江西省",@"湖北省",@"广西壮族自治区",@"甘肃省",@"山西省",@"内蒙古",@"陕西省",@"吉林省",@"福建省",@"贵州省",@"广东省",@"青海省",@"西藏自治区",@"四川省",@"宁夏回族自治区",@"海南省",@"台湾省",@"香港特别行政区",@"澳门特别行政区"];
 }
 
 - (void)configNav
@@ -68,7 +70,7 @@
 - (void)configUI
 {
     UIImageView *imageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 64, SCREENW, 160*SCREENW_RATE)];
-    imageV.image = [UIImage imageNamed:@"zc_banner@2x"];
+    imageV.image = [UIImage imageNamed:@"zc_banner"];
     [self.view addSubview:imageV];
     
     _textL = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(imageV.frame)+5*SCREENW_RATE, 140*SCREENW_RATE, 56*SCREENW_RATE)];
@@ -86,7 +88,7 @@
     
     UIButton *inviteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     inviteBtn.frame = CGRectMake(SCREENW - 130*SCREENW_RATE, CGRectGetMaxY(imageV.frame)+5*SCREENW_RATE, 125*SCREENW_RATE, 56*SCREENW_RATE);
-    [inviteBtn setTitle:@"  添加邀请码" forState:UIControlStateNormal];
+    [inviteBtn setTitle:@"添加邀请码" forState:UIControlStateNormal];
     inviteBtn.titleLabel.font = [UIFont systemFontOfSize:16];
     [inviteBtn setTitleColor:RGB(68, 156, 255) forState:UIControlStateNormal];
     [inviteBtn addTarget:self action:@selector(addInvite) forControlEvents:UIControlEventTouchUpInside];
@@ -94,22 +96,28 @@
     
     _addressL = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(_textL.frame), 345*SCREENW_RATE, 50*SCREENW_RATE)];
     _addressL.backgroundColor = [UIColor whiteColor];
-    _addressL.text = @"     上海";
     _addressL.font = [UIFont systemFontOfSize:16];
     _addressL.textColor = RGB(51, 51, 51);
+    _addressL.text = @"";
     _addressL.userInteractionEnabled = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(selectCity)];
     [_addressL addGestureRecognizer:tap];
     [self.view addSubview:_addressL];
     
+    _cityL = [[UILabel alloc]initWithFrame:CGRectMake(23*SCREENW_RATE, _addressL.bounds.origin.y, 50*SCREENW_RATE, 50*SCREENW_RATE)];
+    _cityL.text = @"上海";
+    _cityL.font = [UIFont systemFontOfSize:16];
+    _cityL.textColor = RGB(51, 51, 51);
+    [_addressL addSubview:_cityL];
+    
     UIImageView *arrowDownM = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 9*SCREENW_RATE, 5*SCREENW_RATE)];
-    arrowDownM.center = CGPointMake(CGRectGetMaxX(_addressL.frame)-26*SCREENW_RATE, CGRectGetMidY(_addressL.frame));
-    arrowDownM.image = [UIImage imageNamed:@"arrow_down0@2x"];
-    [self.view insertSubview:arrowDownM aboveSubview:_addressL];
+    arrowDownM.center = CGPointMake(_addressL.bounds.size.width-15*SCREENW_RATE, CGRectGetMidY(_addressL.bounds));
+    arrowDownM.image = [UIImage imageNamed:@"arrow_down0"];
+    [_addressL addSubview:arrowDownM];
     
     UIButton *arrowBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     arrowBtn.frame = CGRectMake(CGRectGetMaxX(_addressL.frame)-40*SCREENW_RATE, _addressL.frame.origin.y*+23.5*SCREENW_RATE, 9*SCREENW_RATE, 5*SCREENW_RATE);
-    [arrowBtn setBackgroundImage:[UIImage imageNamed:@"arrow_down1@2x"] forState:UIControlStateNormal];
+    [arrowBtn setBackgroundImage:[UIImage imageNamed:@"arrow_down1"] forState:UIControlStateNormal];
     [self.view addSubview:arrowBtn];
     
     _telNumTF = [[UITextField alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(_addressL.frame)+14.5*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -128,7 +136,7 @@
     [getNumBtn setTitle:@"获取验证码" forState:UIControlStateNormal];
     [getNumBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
     getNumBtn.titleLabel.font  = [UIFont systemFontOfSize:16];
-    [getNumBtn addTarget:self action:@selector(getTestNum) forControlEvents:UIControlEventTouchUpInside];
+    [getNumBtn addTarget:self action:@selector(getTestNum:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_telNumTF];
     [self.view addSubview:getNumBtn];
     
@@ -149,7 +157,7 @@
     [joinBtn setTitle:@"加入车漫行" forState:UIControlStateNormal];
     [joinBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
     joinBtn.titleLabel.font = [UIFont systemFontOfSize:18];
-    [joinBtn addTarget:self action:@selector(joinCarWalk) forControlEvents:UIControlEventTouchUpInside];
+    [joinBtn addTarget:self action:@selector(joinCarWalk:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:joinBtn];
     
     NSString *contentStr = @"注册即代表我们同意隐私政策, 并理解车漫行是一个叫车";
@@ -221,7 +229,7 @@
     }
 }
 
-- (void)getTestNum
+- (void)getTestNum:(UIButton *)selectedBtn
 {
     if (_telNumTF.text.length == 0)
     {
@@ -229,16 +237,29 @@
     }
     else
     {
+        selectedBtn.userInteractionEnabled = NO;
         NSMutableDictionary *parameterDic = [NSMutableDictionary dictionary];
         [parameterDic setObject:_telNumTF.text forKey:@"mobile"];
-        NSLog(@"parameterDic = %@",parameterDic);
         
         [[NetManager shareManager]requestUrlPost:testAPI andParameter:parameterDic withSuccessBlock:^(id data)
          {
-             NSLog(@"%@",data);
+             selectedBtn.userInteractionEnabled = YES;
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 NSLog(@"%@",data);
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
+             
          }
             andFailedBlock:^(NSError *error)
          {
+             selectedBtn.userInteractionEnabled = YES;
              NSLog(@"%@",error);
          }];
         __block NSInteger time = 59; //倒计时时间
@@ -342,8 +363,9 @@
 
 - (void)sure:(UIButton *)sureBtn
 {
+    _addressL.userInteractionEnabled = YES;
     NSInteger result = [_pickerView selectedRowInComponent:0];
-    _addressL.text = [NSString stringWithFormat:@"   %@",self.provinceArray[result]];
+    _cityL.text = [NSString stringWithFormat:@"%@",self.provinceArray[result]];
     [_pickerView removeFromSuperview];
     [sureBtn removeFromSuperview];
 }
@@ -352,6 +374,7 @@
 {
     [self.view addSubview:[self pickerView]];
     [self.view insertSubview:[self btn] aboveSubview:_pickerView];
+    _addressL.userInteractionEnabled = NO;
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -366,7 +389,8 @@
 
 - (void)changeFrameAdd:(NSArray *)arr
 {
-    for (UIView *view in arr) {
+    for (UIView *view in arr)
+    {
         CGRect frame = view.frame;
         frame.origin.y += 65.5;
         view.frame = frame;
@@ -382,48 +406,42 @@
     }
 }
 
-- (void)joinCarWalk
+- (void)joinCarWalk:(UIButton *)selectedBtn
 {
     if (_testTF.text.length == NO)
     {
         [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"请输入验证码"];
-    }else
+    }
+    else
     {
-        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-        [paraDic setObject:_telNumTF.text forKey:@"mobile"];
-        [[NetManager shareManager]requestUrlPost:joinAPI andParameter:paraDic withSuccessBlock:^(id data)
+        selectedBtn.userInteractionEnabled = NO;
+        NSMutableDictionary *parameterDic = [NSMutableDictionary dictionary];
+        [parameterDic setObject:_telNumTF.text forKey:@"mobile"];
+        [parameterDic setObject:_testTF.text forKey:@"yzm"];
+        [parameterDic setObject:@"1" forKey:@"locid"];
+        [parameterDic setObject:@"" forKey:@"prophet"];
+        [[NetManager shareManager]requestUrlPost:joinAPI andParameter:parameterDic withSuccessBlock:^(id data)
          {
-             NSLog(@"%@",data);
+             selectedBtn.userInteractionEnabled = YES;
              if ([data[@"status"]isEqualToString:@"9000"])
-             {
+            {
+                 [Ultitly shareInstance].prophet_id = data[@"data"][@"prophet_id"];
                  [Ultitly shareInstance].mobile = _telNumTF.text;
                  CarRegisViewController *CarVC = [[CarRegisViewController alloc]init];
                  [self.navigationController pushViewController:CarVC animated:YES];
              }
-             else if ([data[@"status"]isEqualToString:@"0000"])
-             {
-                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:@"服务器响应失败,请稍后再试" preferredStyle:UIAlertControllerStyleAlert];
-                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-                 [alertC addAction:action];
-                 [self presentViewController:alertC animated:YES completion:nil];
-             }
-             else if ([data[@"status"]isEqualToString:@"1000"])
+            else if ([data[@"status"]isEqualToString:@"1000"])
              {
                  UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
                  UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
                  [alertC addAction:action];
                  [self presentViewController:alertC animated:YES completion:nil];
              }
-             else if ([data[@"status"]isEqualToString:@"2000"])
-             {
-                 [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:data[@"msg"]];
-                 [self performSelector:@selector(delayMethod) withObject:nil afterDelay:2];
-             }
              
          }
-                                  andFailedBlock:^(NSError *error)
+                andFailedBlock:^(NSError *error)
          {
-             NSLog(@"%@",error);
+             selectedBtn.userInteractionEnabled = YES;
          }];
     }
     
@@ -434,7 +452,7 @@
 {
     ExplainViewController *explainVC = [[ExplainViewController alloc]init];
     NSString *titleStr = @"隐私政策";
-    NSString *APIStr = @"http://139.196.179.91/carmanl/public/account/privacy";
+    NSString *APIStr = @"http://115.29.246.88:9999/account/privacy";
     explainVC.titleStr = titleStr;
     explainVC.APIStr = APIStr;
     [self.navigationController pushViewController:explainVC animated:YES];

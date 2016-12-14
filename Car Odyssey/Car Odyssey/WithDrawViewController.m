@@ -7,7 +7,7 @@
 //
 
 #import "WithDrawViewController.h"
-#define RechargeAPI @"http://139.196.179.91/carmanl/public/center/withdraw"
+#define RechargeAPI @"http://115.29.246.88:9999/center/withdraw"
 
 @interface WithDrawViewController ()
 

@@ -40,7 +40,7 @@ typedef void(^CompletionBlock)(NSDictionary *resultDic);
 /**
  *  用于设置SDK使用的window，如果没有自行创建window无需设置此接口
  */
-@property (nonatomic, weak) UIWindow *targetWindow;
+//@property (nonatomic, weak) UIWindow *targetWindow;
 
 /**
  *  支付接口

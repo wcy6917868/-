@@ -13,14 +13,23 @@
 #import "MyPointViewController.h"
 #import "SettingViewController.h"
 #import "PersonInfoViewController.h"
+#import "RecommendViewController.h"
+#import "AllOrderViewController.h"
 #import "AppDelegate.h"
-#
+#import <UIImageView+WebCache.h>
+
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
 
 @interface LeftSliderViewController ()<UITableViewDelegate,UITableViewDataSource>
+{
+    UIImageView *headimage;
+    UIImageView *headimage1;
+    UILabel *driverName;
+    UILabel *driverNum;
+}
 @property (nonatomic,strong)UITableView *tableV;
 @property (nonatomic,strong)NSArray *imageArr;
 @property (nonatomic,strong)NSArray *titleArr;
@@ -32,34 +41,49 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self configUI];
-   
 }
+- (void)viewWillAppear:(BOOL)animated{
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *driverNameStr = [ud objectForKey:@"name"];
+    NSString *licenseStr = [ud objectForKey:@"license"];
+    NSString *portraitUrl = [ud objectForKey:@"headportrait"];
+    [headimage1 sd_setImageWithURL:[NSURL URLWithString:portraitUrl]];
+     driverName.text = driverNameStr;
+    driverNum.text = [NSString stringWithFormat:@"%@",licenseStr];
 
+}
 - (void)configUI
 {
     self.view.backgroundColor = RGB(36, 30, 61);
     self.navigationController.navigationBarHidden = YES;
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *driverNameStr = [ud objectForKey:@"name"];
+    NSString *licenseStr = [ud objectForKey:@"license"];
+    NSString *portraitUrl = [ud objectForKey:@"headportrait"];
     
-    UIImageView *headimage = [[UIImageView alloc]initWithFrame:CGRectMake(0*SCREENW_RATE, 0, 80*SCREENW_RATE, 80*SCREENW_RATE)];
+    headimage = [[UIImageView alloc]initWithFrame:CGRectMake(0*SCREENW_RATE, 0, 80*SCREENW_RATE, 80*SCREENW_RATE)];
     headimage.center = CGPointMake(60*SCREENW_RATE, 92*SCREENW_RATE);
-    headimage.image = [UIImage imageNamed:@"touxiang2@2x"];
     [self.view addSubview:headimage];
-    UIImageView *headimage1 = [[UIImageView alloc]initWithFrame:CGRectMake(0*SCREENW_RATE, 0, 80*SCREENW_RATE, 80*SCREENW_RATE)];
+    headimage1 = [[UIImageView alloc]initWithFrame:CGRectMake(0*SCREENW_RATE, 0, 76*SCREENW_RATE, 76*SCREENW_RATE)];
     headimage1.userInteractionEnabled = YES;
     headimage1.center = CGPointMake(60*SCREENW_RATE, 92*SCREENW_RATE);
-    headimage1.image = [UIImage imageNamed:@"touxiang0@2x"];
+    [headimage1 sd_setImageWithURL:[NSURL URLWithString:portraitUrl]];
+    headimage1.layer.cornerRadius = 40.0f*SCREENW_RATE;
+    headimage1.layer.masksToBounds = YES;
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(personInfo)];
     [headimage1 addGestureRecognizer:tap];
     [self.view addSubview:headimage1];
     
-    UILabel *driverName = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(headimage.frame)+15*SCREENW_RATE, 72*SCREENW_RATE, 100*SCREENW_RATE, 26*SCREENW_RATE)];
-    driverName.text = @"彭师傅";
+    driverName = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(headimage.frame)+15*SCREENW_RATE, 72*SCREENW_RATE, 100*SCREENW_RATE, 26*SCREENW_RATE)];
+    driverName.text = driverNameStr;
+   // NSLog(@"%@",driverNameStr);
     driverName.textColor = RGB(255, 255, 255);
     driverName.font = [UIFont systemFontOfSize:18];
     [self.view addSubview:driverName];
     
-    UILabel *driverNum = [[UILabel alloc]initWithFrame:CGRectMake(driverName.frame.origin.x, CGRectGetMaxY(driverName.frame), 160*SCREENW_RATE, 21*SCREENW_RATE)];
-    driverNum.text = @"沪A88888 黄埔司机";
+    driverNum = [[UILabel alloc]initWithFrame:CGRectMake(driverName.frame.origin.x, CGRectGetMaxY(driverName.frame), 160*SCREENW_RATE, 21*SCREENW_RATE)];
+    driverNum.text = [NSString stringWithFormat:@"%@",licenseStr];
+    //NSLog(@"%@",driverNum);
     driverNum.textColor = RGB(255, 255, 255);
     driverNum.font = [UIFont systemFontOfSize:14];
     [self.view addSubview:driverNum];
@@ -68,21 +92,22 @@
     lineV.backgroundColor = RGB(56, 52, 77);
     [self.view addSubview:lineV];
     
-    _imageArr = @[@"brief-case@2x",@"piggy@2x",@"handset@2x",@"info-2@2x",@"settings@2x",@"box-closed-2@2x"];
+    _imageArr = @[@"brief-case",@"piggy",@"oues",@"info-2",@"settings",@"box-closed-2"];
     
-    _titleArr = @[@"我的行程",@"我的钱包",@"联系客服",@"我的积分",@"个人设置",@"推荐有奖"];
+    _titleArr = @[@"我的行程",@"我的钱包",@"全部订单", @"我的积分",@"个人设置",@"推荐有奖"];
     
     _tableV = [[UITableView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(lineV.frame)+20*SCREENW_RATE, SCREENW, 270*SCREENW_RATE) style:UITableViewStylePlain];
     _tableV.delegate = self;
     _tableV.dataSource = self;
     _tableV.separatorStyle = UITableViewCellSeparatorStyleNone;
+    _tableV.scrollEnabled = NO;
     [self.view addSubview:_tableV];
     
     UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(_tableV.frame)+54*SCREENW_RATE, SCREENW, 8*SCREENW_RATE)];
     lineV1.backgroundColor = RGB(56, 52, 77);
     [self.view addSubview:lineV1];
     
-    NSArray *bigImArr = @[@"car1@2x",@"shipping@2x",@"tools@2x"];
+    NSArray *bigImArr = @[@"car1",@"shipping",@"tools"];
     NSArray *bigTiL = @[@"车友",@"商城",@"社区"];
     
     for (int i = 0; i < 3; i ++)
@@ -102,7 +127,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _imageArr.count;
+    return _titleArr.count;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -124,6 +149,7 @@
     if (indexPath.row == 3)
     {
         cell.integralBtn.hidden = NO;
+    
     }
     return  cell;
 }
@@ -139,7 +165,8 @@
             AppDelegate *tempAppDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             UINavigationController *center = (UINavigationController *)tempAppDelegate.drawerController.centerViewController;
             [center pushViewController:vc animated:YES];
-            [tempAppDelegate.drawerController closeDrawerAnimated:YES completion:^(BOOL finished) {
+            [tempAppDelegate.drawerController closeDrawerAnimated:YES completion:^(BOOL finished)
+            {
                 
             }];
         }
@@ -155,9 +182,16 @@
             }];
         }
             break;
+            
         case 2:
         {
-            
+            AllOrderViewController *allOrderVC = [[AllOrderViewController alloc]init];
+            AppDelegate *appdel = (AppDelegate *)[UIApplication sharedApplication].delegate;
+            UINavigationController *center = (UINavigationController *)appdel.drawerController.centerViewController;
+            [center pushViewController:allOrderVC animated:YES];
+            [appdel.drawerController closeDrawerAnimated:YES completion:^(BOOL finished) {
+                
+            }];
         }
             break;
         case 3:
@@ -169,6 +203,7 @@
             [appldel.drawerController closeDrawerAnimated:YES completion:^(BOOL finished) {
                 
             }];
+
         }
             break;
         case 4:
@@ -180,12 +215,18 @@
             [appldel.drawerController closeDrawerAnimated:YES completion:^(BOOL finished) {
                 
             }];
-
         }
             break;
         case 5:
         {
-            
+            RecommendViewController *recommendVC = [[RecommendViewController alloc]init];
+            AppDelegate *appldel = (AppDelegate *)[UIApplication sharedApplication].delegate;
+            UINavigationController *center = (UINavigationController *)appldel.drawerController.centerViewController;
+            [center pushViewController:recommendVC animated:YES];
+            [appldel.drawerController closeDrawerAnimated:YES completion:^(BOOL finished) {
+                
+            }];
+
         }
             break;
             

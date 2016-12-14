@@ -7,14 +7,21 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
 #import "LoginViewController.h"
+#import "ViewController.h"
 #import <AMapFoundationKit/AMapFoundationKit.h>
 #import <IQKeyboardManager.h>
+#import "JPUSHService.h"
+#import <AdSupport/AdSupport.h>
+#import <UserNotifications/UserNotifications.h>
+#import "WXApi.h"
+
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
-@interface AppDelegate ()
+
+@interface AppDelegate ()<JPUSHRegisterDelegate,WXApiDelegate>
+
 @property (nonatomic,strong)LeftSliderViewController *leftViewController;
 @property (nonatomic,strong)MapViewController *mapViewController;
 
@@ -25,9 +32,110 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [self setUpNav];
     [self configDrawer];
-    [self configKeyBoard];
-    [AMapServices sharedServices].apiKey = @"f2096b79438e8f37cf043e62c90cee14";
+    //[self configKeyBoard];
+//注册高德地图
+    [AMapServices sharedServices].apiKey = @"02708ec6ac84471c617809939d2a6885";
+//注册微信支付
+    [WXApi registerApp:@"wx63dee56d5f21e6e5" withDescription:@"chemanxing"];
+//通知图标清零
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
+//    NSString *advertisngId = [[[ASIdentifierManager sharedManager]advertisingIdentifier]UUIDString];
+//登录判定
+    
+//极光推送部分
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 10.0)
+    {
+        JPUSHRegisterEntity *entity = [[JPUSHRegisterEntity alloc]init];
+        entity.types = UNAuthorizationOptionAlert|UNAuthorizationOptionBadge|UNAuthorizationOptionSound;
+        [JPUSHService registerForRemoteNotificationConfig:entity delegate:self];
+    }
+    else if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0)
+    {
+        [JPUSHService registerForRemoteNotificationTypes:(UIUserNotificationTypeBadge | UIUserNotificationTypeSound |UIUserNotificationTypeAlert) categories:nil];
+    }
+    else
+    {
+        [JPUSHService registerForRemoteNotificationTypes:(UIUserNotificationTypeBadge | UIUserNotificationTypeSound |UIUserNotificationTypeAlert) categories:nil];
+    }
+    
+    [JPUSHService setupWithOption:launchOptions appKey:appKey channel:channel apsForProduction:isProduction advertisingIdentifier:nil];
+    
+    [JPUSHService registrationIDCompletionHandler:^(int resCode, NSString *registrationID) {
+        if (resCode == 0)
+        {
+            NSLog(@"registrationID获取成功 : %@",registrationID);
+        }
+        else
+        {
+            NSLog(@"registrationID获取失败,code:%d",resCode);
+        }
+    }];
     return YES;
+}
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+    [JPUSHService registerDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+    NSLog(@"did Fail To Register For Remote Notifications With Error:%@",error);
+}
+
+- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(NSInteger))completionHandler
+{
+    NSDictionary *userInfo = notification.request.content.userInfo;
+    
+//    UNNotificationRequest *request = notification.request;
+//    UNNotificationContent *content = request.content;
+//    NSNumber *badge = content.badge;
+//    NSString *body = content.body;
+//    UNNotificationSound *sound = content.sound;
+//    NSString *subtitle = content.subtitle;
+//    NSString *title = content.title;
+    
+    if ([notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]])
+    {
+        [JPUSHService handleRemoteNotification:userInfo];
+    }
+    completionHandler(UNNotificationPresentationOptionAlert);
+}
+
+- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler
+{
+    NSDictionary *userInfo = response.notification.request.content.userInfo;
+    if ([response.notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]])
+    {
+        [JPUSHService handleRemoteNotification:userInfo];
+    }
+    completionHandler();
+}
+
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+    [JPUSHService handleRemoteNotification:userInfo];
+    completionHandler(UIBackgroundFetchResultNewData);
+}
+
+- (void)onResp:(BaseResp *)resp
+{
+    if ([resp isKindOfClass:[PayResp class]])
+    {
+        PayResp *response = (PayResp *)resp;
+        switch (response.errCode)
+        {
+            case WXSuccess:
+                NSLog(@"支付成功");
+                break;
+                
+            default:
+                NSLog(@"支付失败,retcode = %d",resp.errCode);
+                break;
+        }
+    }
 }
 
 - (void)configDrawer
@@ -45,29 +153,50 @@
     [self.drawerController setMaximumLeftDrawerWidth:300*SCREENW_RATE];
     [self.drawerController setOpenDrawerGestureModeMask:MMOpenDrawerGestureModeAll];
     [self.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeAll];
-    //[self.window setRootViewController:_drawerController];
+    
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    
+    BOOL isLog = [ud boolForKey:@"isLogin"];
+    
+    if (isLog == YES)
+    {
+        [self.window setRootViewController:_drawerController];
+    }
+    else
+    {
+        ViewController *vc = [[ViewController alloc]init];
+        
+        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
+        
+        self.window.rootViewController = nav;;
+    }
+    
 }
 
-- (void)configKeyBoard
-{
-    IQKeyboardManager *keyManager = [IQKeyboardManager sharedManager];
-    keyManager.shouldResignOnTouchOutside = YES;
-    keyManager.enableAutoToolbar = NO;
-}
+//- (void)configKeyBoard
+//{
+//    IQKeyboardManager *keyManager = [IQKeyboardManager sharedManager];
+//    keyManager.shouldResignOnTouchOutside = YES;
+//    keyManager.enableAutoToolbar = NO;
+//}
 
 - (void)setUpNav
 {
+    
     self.window = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
     
     self.window.backgroundColor = [UIColor whiteColor];
     
     [self.window makeKeyAndVisible];
     
-    ViewController *mainVC = [[ViewController alloc]init];
-    
-    UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:mainVC];
-    
-    self.window.rootViewController = nav;
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
+{
+    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:notification.alertBody preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil];
+    [alertC addAction:action];
+    [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertC animated:YES completion:nil];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {

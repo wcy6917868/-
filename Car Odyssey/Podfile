@@ -7,4 +7,6 @@ pod'AFNetworking'
 pod'MBProgressHUD'
 pod'IQKeyboardManager'
 pod'JSONModel'
+pod'SDWebImage'
+pod'MJRefresh'
 end
