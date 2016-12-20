@@ -96,7 +96,7 @@
     isPress = NO;
     
     //创建点击按钮
-    NSArray *btnTitleArr = @[@"我的预约",@"我已完成",@"申请取消"];
+    NSArray *btnTitleArr = @[@"我的预约",@"我已完成",@"申请改派"];
     for (int i = 0; i < 3; i ++)
     {
         UIButton *jonuneyBtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -283,7 +283,7 @@
         cell  = [[JourneyTableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
     }
     cell.layer.masksToBounds = YES;
-    cell.layer.cornerRadius = 5;
+    cell.layer.cornerRadius = 5.0f;
     cell.backgroundColor = [UIColor clearColor];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     cell.model = _dataArray[indexPath.row];

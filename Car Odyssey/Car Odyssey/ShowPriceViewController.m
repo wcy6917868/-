@@ -80,7 +80,6 @@
     textL.font = [UIFont systemFontOfSize:14];
     textL.textColor = RGB(68, 68, 68);
     textL.numberOfLines = 3;
-//    NSString *str = _mileFare;
     NSString *str1 = [NSString stringWithFormat:@"您与乘客陈先生的订单已被记录在我的行程中,本次输入%@元,想要了解更多,请查看我的行程",[Ultitly shareInstance].fareCost];
     
     if ([Ultitly shareInstance].fareCost.length > 0)
@@ -100,26 +99,26 @@
     [popV addSubview:lineV];
     
     sureAddBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    sureAddBtn.frame = CGRectMake(0, CGRectGetMaxY(lineV.frame), 170*SCREENW_RATE, popV.frame.size.height - CGRectGetMaxY(lineV.frame));
+    sureAddBtn.frame = CGRectMake(0, CGRectGetMaxY(lineV.frame), 340*SCREENW_RATE, popV.frame.size.height - CGRectGetMaxY(lineV.frame));
     sureAddBtn.titleLabel.font = [UIFont systemFontOfSize:16];
-    [sureAddBtn setTitle:@"确认加钱" forState:UIControlStateNormal];
+    [sureAddBtn setTitle:@"确认" forState:UIControlStateNormal];
     [sureAddBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
     [sureAddBtn addTarget:self action:@selector(sureAdd:) forControlEvents:UIControlEventTouchUpInside];
     isAdd = NO;
     [popV addSubview:sureAddBtn];
     
-    UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(sureAddBtn.frame), lineV.frame.origin.y, 1*SCREENW_RATE, popV.frame.size.height - CGRectGetMaxY(lineV.frame))];
-    lineV1.backgroundColor = RGB(238, 238, 238);
-    [popV addSubview:lineV1];
+//    UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(sureAddBtn.frame), lineV.frame.origin.y, 1*SCREENW_RATE, popV.frame.size.height - CGRectGetMaxY(lineV.frame))];
+//    lineV1.backgroundColor = RGB(238, 238, 238);
+//    [popV addSubview:lineV1];
     //创建继续听单按钮
-    UIButton *continueBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    continueBtn.titleLabel.font = [UIFont systemFontOfSize:16];
-    [continueBtn setTitleColor:RGB(136, 136, 136) forState:UIControlStateNormal];
-    continueBtn.frame = CGRectMake(lineV1.frame.origin.x, lineV1.frame.origin.y, 169*SCREENW_RATE, lineV1.frame.size.height);
-    [continueBtn setTitle:@"继续听单" forState:UIControlStateNormal];
-    [continueBtn addTarget:self action:@selector(continueGetList) forControlEvents:UIControlEventTouchUpInside];
-    [popV addSubview:continueBtn];
-    controlArr = @[lineV,sureAddBtn,lineV1,continueBtn];
+//    UIButton *continueBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+//    continueBtn.titleLabel.font = [UIFont systemFontOfSize:16];
+//    [continueBtn setTitleColor:RGB(136, 136, 136) forState:UIControlStateNormal];
+//    continueBtn.frame = CGRectMake(lineV1.frame.origin.x, lineV1.frame.origin.y, 169*SCREENW_RATE, lineV1.frame.size.height);
+//    [continueBtn setTitle:@"继续听单" forState:UIControlStateNormal];
+//    [continueBtn addTarget:self action:@selector(continueGetList) forControlEvents:UIControlEventTouchUpInside];
+//    [popV addSubview:continueBtn];
+    controlArr = @[lineV,sureAddBtn];
 }
 
 - (void)sureAdd:(UIButton *)selectedBtn
@@ -194,9 +193,53 @@
 
 - (void)reStart
 {
-    [self dismissViewControllerAnimated:YES completion:^{
-        _block(@"restart");
-    }];
+    UITextField *parkCost  = [costScrollerView viewWithTag:200];
+    UITextField *emptyCost = [costScrollerView viewWithTag:201];
+    UITextField *stayCost = [costScrollerView viewWithTag:202];
+    UITextField *foodCost = [costScrollerView viewWithTag:203];
+    UITextField *over_mileage = [costScrollerView viewWithTag:204];
+    UITextField *over_time = [costScrollerView viewWithTag:205];
+    UITextField *highroad = [costScrollerView viewWithTag:206];
+    UITextField *night = [costScrollerView viewWithTag:207];
+    UITextField *others = [costScrollerView viewWithTag:208];
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *userid = [ud objectForKey:@"userid"];
+    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+    [paraDic setObject:userid forKey:@"id"];
+    [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
+    [paraDic setObject:parkCost.text forKey:@"parking"];
+    [paraDic setObject:emptyCost.text forKey:@"idling"];
+    [paraDic setObject:stayCost.text forKey:@"stay"];
+    [paraDic setObject:foodCost.text forKey:@"food"];
+    [paraDic setObject:[Ultitly shareInstance].mileage forKey:@"mileage"];
+    [paraDic setObject:over_mileage.text forKey:@"over_mileage"];
+    [paraDic setObject:over_time.text forKey:@"over_time"];
+    [paraDic setObject:highroad.text forKey:@"highroad"];
+    [paraDic setObject:night.text forKey:@"night"];
+    [paraDic setObject:others.text forKey:@"others"];
+    NSLog(@"%@",paraDic);
+    [[NetManager shareManager]requestUrlPost:addMoneyAPI andParameter:paraDic withSuccessBlock:^(id data)
+     {
+        if ([data[@"status"]isEqualToString:@"9000"])
+         {
+             [self dismissViewControllerAnimated:YES completion:^{
+                 
+             }];
+             _block(@"reset");
+         }
+         else if ([data[@"status"]isEqualToString:@"1000"])
+         {
+             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+             [alertC addAction:action];
+             [self presentViewController:alertC animated:YES completion:nil];
+         }
+     }
+                andFailedBlock:^(NSError *error)
+     {
+         
+     }];
+
 }
 
 - (void)setTextField
@@ -258,7 +301,6 @@
         }
     }
     
-    //NSLog(@"%.2f",totalMoney);
     UITextField *costTF = [costScrollerView viewWithTag:209];
     costTF.text = [NSString stringWithFormat:@"%.2f",totalMoney];
 }
@@ -271,9 +313,6 @@
         frame.origin.y = frame.origin.y + 130*SCREENW_RATE;
         view.frame = frame;
     }
-//    CGRect popFrame = popV.frame;
-//    popFrame.size.height = CGRectGetMaxY(sureAddBtn.frame);
-//    popV.frame = popFrame;
 }
 
 

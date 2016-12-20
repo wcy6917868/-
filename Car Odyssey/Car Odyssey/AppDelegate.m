@@ -88,14 +88,6 @@
 {
     NSDictionary *userInfo = notification.request.content.userInfo;
     
-//    UNNotificationRequest *request = notification.request;
-//    UNNotificationContent *content = request.content;
-//    NSNumber *badge = content.badge;
-//    NSString *body = content.body;
-//    UNNotificationSound *sound = content.sound;
-//    NSString *subtitle = content.subtitle;
-//    NSString *title = content.title;
-    
     if ([notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]])
     {
         [JPUSHService handleRemoteNotification:userInfo];
@@ -154,22 +146,13 @@
     [self.drawerController setOpenDrawerGestureModeMask:MMOpenDrawerGestureModeAll];
     [self.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeAll];
     
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     
-    BOOL isLog = [ud boolForKey:@"isLogin"];
-    
-    if (isLog == YES)
-    {
-        [self.window setRootViewController:_drawerController];
-    }
-    else
-    {
         ViewController *vc = [[ViewController alloc]init];
         
         UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
         
         self.window.rootViewController = nav;;
-    }
+    
     
 }
 

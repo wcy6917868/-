@@ -14,6 +14,7 @@
 #import "ExplainViewController.h"
 #import "ForgetPassWordViewController.h"
 #import "Ultitly.h"
+#import "JPUSHService.h"
 #define LoginAPI @"http://115.29.246.88:9999/account/login"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
@@ -30,6 +31,7 @@
     bool isSelected ;
     UITextField *user;
     UITextField *passWord;
+    UIButton *loginBtn;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -42,14 +44,12 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    //[self initNav];
     [self configUI];
     
 }
 
 - (void)initNav
 {
-    
     //标题设置
     self.navigationController.navigationBar.barTintColor = RGB(37, 155, 255);
     self.navigationItem.title = @"登录";
@@ -61,9 +61,8 @@
     [btn setBackgroundImage:[UIImage imageNamed:@"arrow_left0"] forState:UIControlStateNormal];
     [btn addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:btn];
-    //导航栏右边按钮设置
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"注册" style:UIBarButtonItemStylePlain target:self action:@selector(registed)];
-    [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:15],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
+//  导航栏右边按钮设置
+
 }
 
 - (void)configUI
@@ -93,12 +92,14 @@
     passL.textAlignment = NSTextAlignmentCenter;
     passL.textColor = RGB(34, 34, 34);
     passL.font = [UIFont systemFontOfSize:16];
+    
     passWord = [[UITextField alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(user.frame), SCREENW, 50*SCREENW_RATE)];
     passWord.borderStyle = UITextBorderStyleNone;
     passWord.backgroundColor = [UIColor whiteColor];
     passWord.placeholder = @"请输入密码";
     passWord.clearsOnBeginEditing = YES;
     passWord.leftView = passL;
+    
     UIButton *forgetPass = [UIButton buttonWithType:UIButtonTypeCustom];
     forgetPass.frame = CGRectMake(0, 0, 80*SCREENW_RATE, 30*SCREENW_RATE);
     forgetPass.titleLabel.font = [UIFont systemFontOfSize:16];
@@ -114,7 +115,7 @@
     lineV.backgroundColor = RGB(242, 242, 242);
     [self.view addSubview:lineV];
     
-    UIButton *loginBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    loginBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     loginBtn.frame = CGRectMake(15*SCREENW_RATE, CGRectGetMaxY(passWord.frame)+24*SCREENW_RATE, 345*SCREENW_RATE, 50*SCREENW_RATE);
     loginBtn.backgroundColor = RGB(37, 155, 255);
     [loginBtn setTitle:@"登录" forState:UIControlStateNormal];
@@ -144,7 +145,6 @@
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(privacy)];
     [textL1 addGestureRecognizer:tap];
     [self.view addSubview:textL1];
-
     
 }
 
@@ -176,13 +176,12 @@
         [[NetManager shareManager]requestUrlPost:LoginAPI andParameter:paramterDic withSuccessBlock:^(id data)
         {
             selectedBtn.userInteractionEnabled = YES;
-            NSLog(@"%@",data);
             if ([data[@"status"]isEqualToString:@"9000"])
             {
                 [Ultitly shareInstance].id = data[@"data"][@"id"];
                 
                 NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-                [ud setBool:YES forKey:@"isLogin"];
+                [ud setObject:@"isLog"  forKey:@"isLogin"];
                 [ud setObject:data[@"data"][@"id"] forKey:@"userid"];
                 [ud setObject:data[@"data"][@"realname"] forKey:@"name"];
                 [ud setObject:data[@"data"][@"age"] forKey:@"age"];
@@ -193,9 +192,11 @@
                 [ud setObject:data[@"data"][@"portrait"] forKey:@"headportrait"];
                 [ud setObject:data[@"data"][@"portraitname"] forKey:@"portraitname"];
                 [ud setObject:user.text forKey:@"mobile"];
+                [ud setObject:passWord.text forKey:@"passWord"];
+                [ud setObject:user.text forKey:@"mobile"];
                 [ud setObject:data[@"data"][@"locid"] forKey:@"city"];
                 [ud synchronize];
-                
+                [JPUSHService setTags:data[@"data"][@"jg_tags"] aliasInbackground:data[@"data"][@"jg_alias"]];
                 [self delayMethod];
             }
             else if ([data[@"status"]isEqualToString:@"1000"])
@@ -206,7 +207,7 @@
                 [self presentViewController:alertC animated:YES completion:nil];
             }
         }
-        andFailedBlock:^(NSError *error)
+         andFailedBlock:^(NSError *error)
          {
              selectedBtn.userInteractionEnabled = YES;
         }];
@@ -218,7 +219,6 @@
         [alertC addAction:action];
         [self presentViewController:alertC animated:YES completion:nil];
     }
-
 }
 
 - (void)privacy
@@ -241,7 +241,7 @@
 {
     MapViewController *MVC = [[MapViewController alloc]init];
     [self.navigationController pushViewController:MVC animated:YES];
-
+    
     AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
     appdel.window.tintColor = [UIColor blueColor];
     appdel.window.rootViewController = appdel.drawerController;

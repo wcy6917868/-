@@ -31,6 +31,8 @@
 @property (nonatomic,copy)NSString *orderID;
 @property (nonatomic,copy)NSString *fareCost;
 @property (nonatomic,copy)NSString *mileage;
+@property (nonatomic,copy)NSString *beginLat;
+@property (nonatomic,copy)NSString *beginLng;
 @property (nonatomic,strong)UIImage *driverA;
 @property (nonatomic,strong)UIImage *driverB;
 @property (nonatomic,strong)UIImage *travelA;

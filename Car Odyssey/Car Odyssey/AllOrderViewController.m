@@ -162,7 +162,7 @@
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSString *driverID = [ud objectForKey:@"userid"];
     [paraDic setObject:driverID forKey:@"id"];
-    [[NetManager shareManager]requestUrlPost:[NSString stringWithFormat:allOrderAPI,@"3"] andParameter:paraDic withSuccessBlock:^(id data)
+    [[NetManager shareManager]requestUrlPost:[NSString stringWithFormat:allOrderAPI,@"2"] andParameter:paraDic withSuccessBlock:^(id data)
      {
          if ([data[@"status"]isEqualToString:@"9000"])
          {

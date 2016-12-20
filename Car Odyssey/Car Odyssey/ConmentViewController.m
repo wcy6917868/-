@@ -50,7 +50,7 @@
     NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
     [paraDic setObject:userid forKey:@"id"];
-    [paraDic setObject:@"1" forKey:@"page"];
+    [paraDic setObject:@"0" forKey:@"page"];
     [[NetManager shareManager]requestUrlPost:ActivityInfoAPI andParameter:paraDic withSuccessBlock:^(id data)
     {
         if ([data[@"status"]isEqualToString:@"9000"])
@@ -120,7 +120,7 @@
     }
     
     cell.layer.masksToBounds = YES;
-    cell.layer.cornerRadius = 5;
+    cell.layer.cornerRadius = 5.0f;
     cell.backgroundColor = [UIColor clearColor];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     cell.titleL.text = _dataArray[indexPath.row][@"title"];

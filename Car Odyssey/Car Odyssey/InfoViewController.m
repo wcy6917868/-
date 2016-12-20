@@ -86,13 +86,13 @@
     UILabel *textL2 = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(conmentPic.frame)+15*SCREENW_RATE, 18*SCREENW_RATE, 70*SCREENW_RATE, 26*SCREENW_RATE)];
     textL2.textColor = RGB(51, 51, 51);
     textL2.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
-    textL2.text = @"评论消息";
+    textL2.text = @"活动消息";
     [conmentV addSubview:textL2];
     
     UILabel *textL3 = [[UILabel alloc]initWithFrame:CGRectMake(textL.frame.origin.x, CGRectGetMaxY(textL2.frame), 100*SCREENW_RATE, 18*SCREENW_RATE)];
     textL3.font = [UIFont systemFontOfSize:12*SCREENW_RATE];
     textL3.textColor = RGB(136, 136, 136);
-    textL3.text = @"暂无新消息";
+    textL3.text = @"您有新的消息";
     [conmentV addSubview:textL3];
     
     UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(conmentV.frame), SCREENW, 1*SCREENW_RATE)];

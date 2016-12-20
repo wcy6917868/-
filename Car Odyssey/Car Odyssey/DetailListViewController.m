@@ -9,6 +9,7 @@
 #import "DetailListViewController.h"
 #import "FareDetailController.h"
 #import "DetailListSecondViewController.h"
+#import "MyJourneyViewController.h"
 #import "MapViewController.h"
 #import "NetManager.h"
 #import "Ultitly.h"
@@ -18,6 +19,7 @@
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
 #define RobListAPI @"http://115.29.246.88:9999/core/struggle"
 #define ApplyCancelAPI @"http://115.29.246.88:9999/core/applychange"
+#define startOrderAPI @"http://115.29.246.88:9999/core/orderstart"
 
 @interface DetailListViewController ()
 {
@@ -57,7 +59,7 @@
     [deleteBtn setTitle:@"删除" forState:UIControlStateNormal];
     [deleteBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
     deleteBtn.titleLabel.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
-    [deleteBtn addTarget:self action:@selector(delete) forControlEvents:UIControlEventTouchUpInside];
+//    [deleteBtn addTarget:self action:@selector(delete) forControlEvents:UIControlEventTouchUpInside];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:deleteBtn];
     
     [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:15],NSForegroundColorAttributeName:RGB(255, 255, 255)} forState:UIControlStateNormal];
@@ -150,27 +152,7 @@
                 [view addSubview:moneyL];
                 [arrowM removeFromSuperview];
             }
-//            else if (i == 3)
-//            {
-//                for (int i = 0; i < 5; i ++)
-//                {
-//                    UIImageView *starImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 16*SCREENW_RATE, 15*SCREENW_RATE)];
-//                    starImage.image = [UIImage imageNamed:@"wujiaoxing1"];
-//                    starImage.center = CGPointMake(SCREENW - 115*SCREENW_RATE+(i*21*SCREENW_RATE),25*SCREENW_RATE);
-//                    [view addSubview:starImage];
-//                    [arrowM removeFromSuperview];
-//                }
-//                
-//                for (int i = 0; i < 44; i ++)
-//                {
-//                    UIImageView *starImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 16*SCREENW_RATE, 15*SCREENW_RATE)];
-//                    starImage.image = [UIImage imageNamed:@"wujiaoxing0"];
-//                    starImage.center = CGPointMake(SCREENW - 115*SCREENW_RATE+(i*21*SCREENW_RATE),25*SCREENW_RATE);
-//                    [view addSubview:starImage];
-//                    [arrowM removeFromSuperview];
-//                }
-//                
-//            }
+
             else if (i == 1)
             {
                 view.userInteractionEnabled = YES;
@@ -267,21 +249,21 @@
             arrowM.image = [UIImage imageNamed:@"arrow_right"];
             [checkMapView addSubview:arrowM];
             
-            UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-            startBtn.frame = CGRectMake(0, SCREENH - 50*SCREENW_RATE, SCREENW/2, 50*SCREENW_RATE);
-            startBtn.backgroundColor = RGB(255, 255, 255);
-            [startBtn setTitle:@"开 始" forState:UIControlStateNormal];
-            [startBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
-            [startBtn addTarget:self action:@selector(startOrder) forControlEvents:UIControlEventTouchUpInside];
-            [self.view addSubview:startBtn];
-            
             UIButton *giveUpOrder = [UIButton buttonWithType:UIButtonTypeCustom];
-            giveUpOrder.frame = CGRectMake(CGRectGetMaxX(startBtn.frame), startBtn.frame.origin.y, SCREENW/2, 50*SCREENW_RATE);
+            giveUpOrder.frame = CGRectMake(0, SCREENH - 50*SCREENW_RATE, SCREENW/2, 50*SCREENW_RATE);
             giveUpOrder.backgroundColor = RGB(37, 155, 255);
             [giveUpOrder setTitle:@"放弃订单" forState:UIControlStateNormal];
             [giveUpOrder setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
             [giveUpOrder addTarget:self action:@selector(giveuporder) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:giveUpOrder];
+            
+            UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            startBtn.frame = CGRectMake(CGRectGetMaxX(giveUpOrder.frame), giveUpOrder.frame.origin.y, SCREENW/2, 50*SCREENW_RATE);
+            startBtn.backgroundColor = RGB(255, 255, 255);
+            [startBtn setTitle:@"开 始" forState:UIControlStateNormal];
+            [startBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
+            [startBtn addTarget:self action:@selector(startOrder) forControlEvents:UIControlEventTouchUpInside];
+            [self.view addSubview:startBtn];
         }
     }
 }
@@ -293,6 +275,7 @@
 
 - (void)fareDetail
 {
+    
     FareDetailController *fareVC = [[FareDetailController alloc]init];
     fareVC.Jmodel = _orderModel;
     [self.navigationController pushViewController:fareVC animated:YES];
@@ -300,35 +283,47 @@
 
 - (void)robList:(UIButton *)robButton
 {
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    NSString *driverID = [ud objectForKey:@"userid"];
-    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:driverID forKey:@"id"];
-    [paraDic setObject:_orderModel.id forKey:@"oid"];
-    //NSLog(@"%@",_orderModel.id);
-    [[NetManager shareManager]requestUrlPost:RobListAPI andParameter:paraDic withSuccessBlock:^(id data)
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"提示" message:@"您是否确定要抢单?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *sureAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
     {
-        if ([data[@"status"]isEqualToString:@"9000"])
-        {
-            NSLog(@"%@",data);
-            alertArray = data[@"data"][@"times"];
-            [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"接单成功喽~~"];
-            [self setAlertTime];
-          
-        }
-        else
-        {
-            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-            [alertC addAction:action];
-            [self presentViewController:alertC animated:YES completion:nil];
-        }
-
-    }
-    andFailedBlock:^(NSError *error)
-    {
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *driverID = [ud objectForKey:@"userid"];
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        [paraDic setObject:driverID forKey:@"id"];
+        [paraDic setObject:_orderModel.id forKey:@"oid"];
         
+        [[NetManager shareManager]requestUrlPost:RobListAPI andParameter:paraDic withSuccessBlock:^(id data)
+         {
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 NSLog(@"%@",data);
+                 alertArray = data[@"data"][@"times"];
+                 [self setAlertTime];
+                 
+                 MyJourneyViewController *journeyVC = [[MyJourneyViewController alloc]init];
+                 [self.navigationController pushViewController:journeyVC animated:YES];
+                 
+             }
+             else
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+             }
+             
+         }
+                andFailedBlock:^(NSError *error)
+         {
+             
+         }];
+
     }];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+    [sureAlert addAction:sureAction];
+    [sureAlert addAction:cancelAction];
+    [self presentViewController:sureAlert animated:YES completion:nil];
+
 }
 
 - (void)checkListDetail
@@ -340,41 +335,89 @@
 
 - (void)giveuporder
 {
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    NSString *userid = [ud objectForKey:@"userid"];
-    NSMutableDictionary *paraDic  = [NSMutableDictionary dictionary];
-    [paraDic setObject:userid forKey:@"id"];
-    [paraDic setObject:_orderModel.id forKey:@"oid"];
-    [[NetManager shareManager]requestUrlPost:ApplyCancelAPI andParameter:paraDic withSuccessBlock:^(id data)
-    {
-        if ([data[@"status"]isEqualToString:@"9000"])
-        {
-            [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"申请取消订单成功"];
-        }
-        else
-        {
-            [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"申请取消失败"];
-        }
-    }
-    andFailedBlock:^(NSError *error)
-    {
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定要取消订单吗?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *sureAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+       
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *userid = [ud objectForKey:@"userid"];
+        NSMutableDictionary *paraDic  = [NSMutableDictionary dictionary];
+        [paraDic setObject:userid forKey:@"id"];
+        [paraDic setObject:_orderModel.id forKey:@"oid"];
+        [[NetManager shareManager]requestUrlPost:ApplyCancelAPI andParameter:paraDic withSuccessBlock:^(id data)
+         {
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"申请取消订单成功"];
+             }
+             else
+             {
+                 [[Ultitly shareInstance]showMBProgressHUD:self.view withShowStr:@"申请取消失败"];
+             }
+         }
+            andFailedBlock:^(NSError *error)
+         {
+             
+         }];
+
         
     }];
+    
+    UIAlertAction *canAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+    [sureAlert addAction:sureAction];
+    [sureAlert addAction:canAction];
+    [self presentViewController:sureAlert animated:YES completion:nil];
+    
 }
 
 - (void)startOrder
 {
-    MapViewController *mapVC = [[MapViewController alloc]init];
-    mapVC.str = @"1";
-    mapVC.outsetStr = _orderModel.odetail;
-    mapVC.finishStr = _orderModel.fdetail;
-    [Ultitly shareInstance].orderID = _orderModel.order_id;
-    [Ultitly shareInstance].fareCost = _orderModel.cost;
-    [Ultitly shareInstance].mileage = _orderModel.mileage;
-    mapVC.coustomNumStr = _orderModel.mobile;
-    mapVC.destinationLat = _orderModel.lat;
-    mapVC.destinationlng = _orderModel.lng;
-    [self.navigationController pushViewController:mapVC animated:YES];
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定要开始进行跑单吗?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *sureAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *driverID = [ud objectForKey:@"userid"];
+        [paraDic setObject:driverID forKey:@"id"];
+        [paraDic setObject:_orderModel.order_id forKey:@"oid"];
+        [paraDic setObject:[Ultitly shareInstance].beginLat forKey:@"lat"];
+        [paraDic setObject:[Ultitly shareInstance].beginLng forKey:@"lng"];
+        
+        [[NetManager shareManager]requestUrlPost:startOrderAPI andParameter:paraDic withSuccessBlock:^(id data)
+        {
+            if ([data[@"status"]isEqualToString:@"9000"])
+            {
+                MapViewController *mapVC = [[MapViewController alloc]init];
+                mapVC.str = @"1";
+                mapVC.outsetStr = _orderModel.odetail;
+                mapVC.finishStr = _orderModel.fdetail;
+                [Ultitly shareInstance].orderID = _orderModel.order_id;
+                [Ultitly shareInstance].fareCost = _orderModel.cost;
+                [Ultitly shareInstance].mileage = _orderModel.mileage;
+                mapVC.coustomNumStr = _orderModel.mobile;
+                mapVC.destinationLat = _orderModel.lat;
+                mapVC.destinationlng = _orderModel.lng;
+                [self.navigationController pushViewController:mapVC animated:YES];
+
+            }
+            else
+            {
+                UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                [alertC addAction:action];
+                [self presentViewController:alertC animated:YES completion:nil];
+
+            }
+        }
+        andFailedBlock:^(NSError *error)
+        {
+            
+        }];
+            }];
+    
+    UIAlertAction *canAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
+    [sureAlert addAction:canAction];
+    [sureAlert addAction:sureAction];
+    [self presentViewController:sureAlert animated:YES completion:nil];
+   
 }
 
 - (void)checkMap
@@ -394,7 +437,6 @@
 
 - (void)setAlertTime
 {
-    alertArray = @[@1481698800,@1481698810,@1481698820];
     for (int i = 0; i < alertArray.count; i ++)
     {
         NSDate *alertDate = [NSDate dateWithTimeIntervalSince1970:[alertArray[i] doubleValue]];

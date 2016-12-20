@@ -25,11 +25,12 @@
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
 #define nearByDiverAPI @"http://115.29.246.88:9999/core/interaction"
 #define makeAnOrderAPI @"http://115.29.246.88:9999/core/begin"
-#define getTheCoustomAPI @"http://115.29.246.88:9999/core/start"
-#define coustomArriveAPI @"http://115.29.246.88:9999/core/reach"
+#define arriveStartAPI @"http://115.29.246.88:9999/core/orderarrive"
+#define getTheCoustomAPI @"http://115.29.246.88:9999/core/orderget"
+#define coustomArriveAPI @"http://115.29.246.88:9999/core/orderreach"
 
 
-@interface MapViewController ()<AMapLocationManagerDelegate,AMapSearchDelegate,MAMapViewDelegate,UIApplicationDelegate,MAMapViewDelegate>
+@interface MapViewController ()<AMapLocationManagerDelegate,AMapSearchDelegate,MAMapViewDelegate,UIApplicationDelegate,MAMapViewDelegate,UIAlertViewDelegate>
 {
     __weak MapViewController *weakSelf ;
     UIView *getCoustomV;
@@ -44,6 +45,7 @@
     BOOL isRob;
     NSTimer *timer;
     NSTimer *robOrderTimer;
+    
 }
 @property (nonatomic,strong)AMapLocationManager *locationManger;
 @property (nonatomic,strong)UIButton *getListBtn;
@@ -59,6 +61,8 @@
 @property (nonatomic,copy)NSString *distanceStr;
 @property (nonatomic,copy)NSString *intergralStr;
 @property (nonatomic,copy)NSString *estimateCost;
+@property (nonatomic,copy)NSString *productType;
+@property (nonatomic,copy)NSString *useTime;
 
 @end
 
@@ -107,7 +111,7 @@
     [self.locationManger startUpdatingLocation];
     [self chuanzhi];
     [self reset];
-    //[self giveUpOrder];
+    
 
 }
 
@@ -144,6 +148,7 @@
 
 - (void)uiConfig
 {
+    
     [AMapServices sharedServices].apiKey = @"02708ec6ac84471c617809939d2a6885";
     weakSelf = self;
     _mapView = [[MAMapView alloc]initWithFrame:self.view.bounds];
@@ -204,6 +209,10 @@
     self.startCoordinate = CLLocationCoordinate2DMake(location.coordinate.latitude, location.coordinate.longitude);
     _diriverLatitude = [NSString stringWithFormat:@"%f",location.coordinate.latitude];
     _diriverLontitude = [NSString stringWithFormat:@"%f",location.coordinate.longitude];
+    
+    [Ultitly shareInstance].beginLat = _diriverLatitude;
+    [Ultitly shareInstance].beginLng = _diriverLontitude;
+    
    
 }
 
@@ -397,7 +406,7 @@
         UIAlertAction *baiduAction = [UIAlertAction actionWithTitle:@"百度地图" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
         {
          if ([[UIApplication sharedApplication]canOpenURL:[NSURL URLWithString:@"baidumap://"]])
-                                          {
+{
         NSString *urlString = [[NSString stringWithFormat:@"baidumap://map/direction?origin={{我的位置}}&destination=latlng:%f,%f|name=目的地&mode=driving&coord_type=gcj02",_destinationCoordinate.latitude,_destinationCoordinate.longitude] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
             [[UIApplication sharedApplication]openURL:[NSURL URLWithString:urlString]];
             }
@@ -447,8 +456,6 @@
 
 - (void)postRobOrder
 {
-
-    //NSLog(@"111222233");
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
@@ -466,23 +473,19 @@
              _distanceStr = data[@"data"][@"distance"];
              _intergralStr = data[@"data"][@"integral"];
              _coustomNumStr = data[@"data"][@"mobile"];
+             _productType = data[@"data"][@"product_type"];
+             _useTime = data[@"data"][@"usetime"];
              [Ultitly shareInstance].mileage = data[@"data"][@"mileage"];
              [Ultitly shareInstance].fareCost = data[@"data"][@"cost"];
              [Ultitly shareInstance].orderID = data[@"data"][@"id"];
              self.destinationCoordinate  =  CLLocationCoordinate2DMake([data[@"data"][@"lat"] floatValue],[data[@"data"][@"lng"] floatValue]);
                         [self delay];
          }
-         else if ([data[@"status"]isEqualToString:@"1000"])
-         {
-             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
-             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-             [alertC addAction:action];
-             [self presentViewController:alertC animated:YES completion:nil];
-         }
+        
      }
-                              andFailedBlock:^(NSError *error)
+                andFailedBlock:^(NSError *error)
      {
-         //_getListBtn.userInteractionEnabled = YES;
+         
      }];
 }
 
@@ -501,8 +504,9 @@
                 BVC.intergralStr = _intergralStr;
                 BVC.driverLat = _diriverLatitude;
                 BVC.driverLng = _diriverLontitude;
-                
-                
+                BVC.productType = _productType;
+                BVC.useTime = _useTime;
+    
                 [BVC uiConfig];
                 
                 [self presentViewController:BVC animated:YES completion:^{
@@ -518,6 +522,7 @@
                 };
     
 }
+
 #pragma mark 抽屉栏点击策划
 - (void)menu:(UIButton *)clickBtn
 {
@@ -623,7 +628,7 @@
     distanceV.tag = 300;
     distanceV.backgroundColor = [UIColor whiteColor];
     distanceV.layer.masksToBounds = YES;
-    distanceV.layer.cornerRadius = 5;
+    distanceV.layer.cornerRadius = 5.0f;
     [_mapView addSubview:distanceV];
     
     UIImageView *soundImageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 18*SCREENW_RATE, 12*SCREENW_RATE)];
@@ -643,9 +648,9 @@
     sureBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     sureBtn.frame = CGRectMake(CGRectGetMaxX(NumL.frame), 0, 187.5*SCREENW_RATE, 60*SCREENW_RATE);
     sureBtn.backgroundColor = RGB(255, 70, 79);
-    [sureBtn setTitle:@"接到乘客 >" forState:UIControlStateNormal];
+    [sureBtn setTitle:@"到达上车点 >" forState:UIControlStateNormal];
     [sureBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-    [sureBtn addTarget:self action:@selector(getCoustom:) forControlEvents:UIControlEventTouchUpInside];
+    [sureBtn addTarget:self action:@selector(arriveStart:) forControlEvents:UIControlEventTouchUpInside];
     [distanceV addSubview:sureBtn];
     
     double delayInSeconds = 1.0;
@@ -738,86 +743,186 @@
         }
     }];
 }
+#pragma mark 到达上车地点
 
-- (void)getCoustom:(UIButton *)arriveBtn
+- (void)arriveStart:(UIButton *)arriveBtn
 {
-    arriveBtn.userInteractionEnabled = NO;
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    NSString *userid = [ud objectForKey:@"userid"];
-    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:userid forKey:@"id"];
-    [[NetManager shareManager]requestUrlPost:getTheCoustomAPI andParameter:paraDic withSuccessBlock:^(id data)
-    {
-        arriveBtn.userInteractionEnabled = YES;
-        if ([data[@"status"]isEqualToString:@"9000"])
+    sureBtn.userInteractionEnabled = NO;
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定到达上车地点吗?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *userid = [ud objectForKey:@"userid"];
+        [paraDic setObject:_diriverLontitude forKey:@"lng"];
+        [paraDic setObject:_diriverLatitude forKey:@"lat"];
+        [paraDic setObject:userid forKey:@"id"];
+        [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
+        [[NetManager shareManager]requestUrlPost:arriveStartAPI andParameter:paraDic withSuccessBlock:^(id data)
         {
-            UIView *view = [_mapView viewWithTag:500];
-            //NSLog(@"%@",data);
-            arriveBtn.backgroundColor = RGB(37, 155, 255);
-            [arriveBtn addTarget:self action:@selector(arrive:) forControlEvents:UIControlEventTouchUpInside];
-            [arriveBtn setTitle:@"到达目的地 >" forState:UIControlStateNormal];
-            NSString *str = @"已行 2.2公里";
-            NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
-            [str1 addAttribute:NSForegroundColorAttributeName value:RGB(254, 71, 80) range:NSMakeRange(3, 3)];
-            NumL.font = [UIFont systemFontOfSize:16];
-            NumL.attributedText = str1;
-            callImage.image = [UIImage imageNamed:@"jianbian0"];
-            UILabel *mileageCost = [[UILabel alloc]init];
-            mileageCost.frame = callImage.frame;
-            mileageCost.textColor = RGB(255, 255, 255);
-            mileageCost.numberOfLines = 2;
-            mileageCost.font = [UIFont systemFontOfSize:16*SCREENW_RATE];NSString *mileageCostStr = [NSString stringWithFormat:@"%@\n元",[Ultitly shareInstance].fareCost];
-            mileageCost.text = mileageCostStr;
-            NSLog(@"%@",mileageCost.text);
-            mileageCost.textAlignment = NSTextAlignmentCenter;
-            [view addSubview:mileageCost];
+            sureBtn.userInteractionEnabled = YES;
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 sureBtn.backgroundColor = RGB(37, 155, 255);
+                 [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
+                 [sureBtn addTarget:self action:@selector(getCoustom:) forControlEvents:UIControlEventTouchUpInside];
+                 [sureBtn setTitle:@"接到乘客 >" forState:UIControlStateNormal];
+             }
+             else
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action)
+                 {
+                    sureBtn.userInteractionEnabled = YES;
+                 }];
+                 [alertC addAction:action];
+                 [self presentViewController:alertC animated:YES completion:nil];
+                 
+             }
+            
         }
-        else if ([data[@"status"]isEqualToString:@"1000"])
-        {
-            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
-            [alertC addAction:action];
-            [self presentViewController:alertC animated:YES completion:nil];
-        }
-    }
-    andFailedBlock:^(NSError *error)
-    {
-        arriveBtn.userInteractionEnabled = YES;
+        andFailedBlock:^(NSError *error) {
+        sureBtn.userInteractionEnabled = YES;
+        }];
+}];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        sureBtn.userInteractionEnabled = YES;
     }];
    
+    [sureAlert addAction:cancelAction];
+    [sureAlert addAction:alertAction];
+    [weakSelf presentViewController:sureAlert animated:YES completion:nil];
+    
 }
+#pragma mark 接到乘客
+- (void)getCoustom:(UIButton *)getBtn
+{
+    
+    sureBtn.userInteractionEnabled = NO;
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定接到乘客吗?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *userid = [ud objectForKey:@"userid"];
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        [paraDic setObject:userid forKey:@"id"];
+        [paraDic setObject:_diriverLatitude forKey:@"lat"];
+        [paraDic setObject:_destinationlng forKey:@"lng"];
+        [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
+        
+        [[NetManager shareManager]requestUrlPost:getTheCoustomAPI andParameter:paraDic withSuccessBlock:^(id data)
+         {
+             //NSLog(@"%@",data);
+             sureBtn.userInteractionEnabled = YES;
+             
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 UIView *view = [_mapView viewWithTag:500];
+                 [sureBtn setTitle:@"到达目的地 >" forState:UIControlStateNormal];
+                 [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
+                 [sureBtn addTarget:weakSelf action:@selector(arrive:) forControlEvents:UIControlEventTouchUpInside];
+                 NSString *str = @"已行 2.2公里";
+                 NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
+                 [str1 addAttribute:NSForegroundColorAttributeName value:RGB(254, 71, 80) range:NSMakeRange(3, 3)];
+                 NumL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+                 NumL.attributedText = str1;
+                 callImage.image = [UIImage imageNamed:@"jianbian0"];
+                 UILabel *mileageCost = [[UILabel alloc]init];
+                 mileageCost.frame = callImage.frame;
+                 mileageCost.textColor = RGB(255, 255, 255);
+                 mileageCost.numberOfLines = 2;
+                 mileageCost.font = [UIFont systemFontOfSize:16*SCREENW_RATE];NSString *mileageCostStr = [NSString stringWithFormat:@"%@\n元",[Ultitly shareInstance].fareCost];
+                 mileageCost.text = mileageCostStr;
+                 //NSLog(@"%@",mileageCost.text);
+                 mileageCost.textAlignment = NSTextAlignmentCenter;
+                 [view addSubview:mileageCost];
+                 
+             }
+             else if ([data[@"status"]isEqualToString:@"1000"])
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                     sureBtn.userInteractionEnabled = YES;
+                 }];
+                 [alertC addAction:action];
+                 [weakSelf presentViewController:alertC animated:YES completion:nil];
+             }
+         }
+                    andFailedBlock:^(NSError *error)
+         {
+             NSLog(@"%@",error);
+             sureBtn.userInteractionEnabled = YES;
+         }];
+
+}];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        sureBtn.userInteractionEnabled = YES;
+    }];
+    
+    [sureAlert addAction:cancelAction];
+    [sureAlert addAction:alertAction];
+    [weakSelf presentViewController:sureAlert animated:YES completion:nil];
+
+    
+    
+}
+
+
 
 #pragma mark 到达目的地
 - (void)arrive:(UIButton *)selectedBtn
 {
-    selectedBtn.userInteractionEnabled = NO;
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    NSString *userID = [ud objectForKey:@"userid"];
-    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
-    [paraDic setObject:userID forKey:@"did"];
-    [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"id"];
-    [[NetManager shareManager]requestUrlPost:coustomArriveAPI andParameter:paraDic withSuccessBlock:^(id data)
-    {
-        selectedBtn.userInteractionEnabled = YES;
-        ShowPriceViewController *SVC = [[ShowPriceViewController alloc]init];
-        SVC.view.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:.5];
-//        SVC.mileFare = _fareStr;
-//        SVC.orderID = _orderID;
-        SVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
-        [SVC configUI];
-        [self presentViewController:SVC animated:YES completion:nil];
-        SVC.block = ^(NSString *Str)
-        {
-            self.resetStr = Str;
-            [weakSelf reset];
-            [weakSelf continueRobList];
-            [weakSelf restart];
-        };
-    }
-    andFailedBlock:^(NSError *error)
-    {
-        selectedBtn.userInteractionEnabled = YES;
+    sureBtn.userInteractionEnabled = NO;
+    UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定到达目的地吗?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        NSString *userID = [ud objectForKey:@"userid"];
+        NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+        [paraDic setObject:userID forKey:@"id"];
+        [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
+        [paraDic setObject:_diriverLatitude forKey:@"lat"];
+        [paraDic setObject:_diriverLontitude forKey:@"lng"];
+        NSLog(@"%@",paraDic);
+        [[NetManager shareManager]requestUrlPost:coustomArriveAPI andParameter:paraDic withSuccessBlock:^(id data)
+         {
+             //NSLog(@"%@",data);
+             if ([data[@"status"]isEqualToString:@"9000"])
+             {
+                 selectedBtn.userInteractionEnabled = YES;
+                 ShowPriceViewController *SVC = [[ShowPriceViewController alloc]init];
+                 SVC.view.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:.5];
+                 SVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
+                 [SVC configUI];
+                 [weakSelf presentViewController:SVC animated:YES completion:nil];
+                 SVC.block = ^(NSString *Str)
+                 {
+                     weakSelf.resetStr = Str;
+                     [weakSelf reset];
+                     [weakSelf continueRobList];
+                     [weakSelf restart];
+                 };
+             }
+             else
+             {
+                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                     sureBtn.userInteractionEnabled = YES;
+                 }];
+                 [alertC addAction:action];
+                 [weakSelf presentViewController:alertC animated:YES completion:nil];
+             }
+             
+         }
+                andFailedBlock:^(NSError *error)
+         {
+             selectedBtn.userInteractionEnabled = YES;
+         }];
+
     }];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        sureBtn.userInteractionEnabled = YES;
+    }];
+    [sureAlert addAction:cancelAction];
+    [sureAlert addAction:alertAction];
+    [weakSelf presentViewController:sureAlert animated:YES completion:nil];
 }
 
 - (void)continueRobList

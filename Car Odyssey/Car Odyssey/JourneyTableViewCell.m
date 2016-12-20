@@ -18,10 +18,10 @@
 {
     if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])
     {
-        UIView*view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 355*SCREENW_RATE, 129*SCREENW_RATE)];
+        UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 355*SCREENW_RATE, 129*SCREENW_RATE)];
         view.backgroundColor = [UIColor whiteColor];
         view.layer.masksToBounds = YES;
-        view.layer.cornerRadius = 5;
+        view.layer.cornerRadius = 5.0f;
         [self.contentView addSubview:view];
         
         UIImageView *redV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 10*SCREENW_RATE)];

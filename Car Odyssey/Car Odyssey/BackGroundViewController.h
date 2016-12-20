@@ -18,5 +18,7 @@
 @property (nonatomic,copy)NSString *estimateCost;
 @property (nonatomic,copy)NSString *driverLat;
 @property (nonatomic,copy)NSString *driverLng;
+@property (nonatomic,copy)NSString *productType;
+@property (nonatomic,copy)NSString *useTime;
 - (void)uiConfig;
 @end

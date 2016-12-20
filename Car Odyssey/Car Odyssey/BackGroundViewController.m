@@ -22,7 +22,8 @@
 {
     UILabel *restL;
     UILabel *giveUpL;
-   
+    NSTimer *timer;
+    dispatch_source_t _timer;
 }
 
 @end
@@ -36,6 +37,13 @@
 
 }
 
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    dispatch_source_cancel(_timer);
+    
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
@@ -44,7 +52,7 @@
 
 - (void)uiConfig
 {
-   
+
     restL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 50*SCREENW_RATE ,50*SCREENW_RATE )];
     restL.center = CGPointMake(60*SCREENW_RATE, SCREENH - 59*SCREENW_RATE);
     restL.font = [UIFont systemFontOfSize:15];
@@ -146,11 +154,11 @@
     daodaL.text = [NSString stringWithFormat:@"   到达地点 : %@",_finishStr];
     [view1 addSubview:daodaL];
     
-    UILabel *estimateL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(view1.frame)+5*SCREENW_RATE, 345*SCREENW_RATE, 80)];
+    UILabel *estimateL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(view1.frame)+5*SCREENW_RATE, 250*SCREENW_RATE, 40*SCREENW_RATE)];
     estimateL.backgroundColor = [UIColor whiteColor];
     estimateL.textColor = RGB(51, 51, 51);
     estimateL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
-    estimateL.textAlignment = NSTextAlignmentCenter;
+    estimateL.textAlignment = NSTextAlignmentRight;
     NSString *costStr = [NSString stringWithFormat:@"这次行程的预计费用为%@元",[Ultitly shareInstance].fareCost];
     
         NSMutableAttributedString *mutableStr = [[NSMutableAttributedString alloc]initWithString:costStr];
@@ -159,7 +167,24 @@
         estimateL.attributedText = mutableStr;
         [addressV addSubview:estimateL];
     
-    [self tikTok];
+    NSDictionary *productDic = @{@"1":@"常规单",@"2":@"国内日租",@"3":@"国内送机",@"4":@"国内接机"};
+    
+    UILabel *productL = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(estimateL.frame), estimateL.frame.origin.y, 95*SCREENW_RATE, 40*SCREENW_RATE)];
+    productL.backgroundColor = [UIColor whiteColor];
+    productL.textColor = RGB(51, 51, 51);
+    productL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+    productL.textAlignment = NSTextAlignmentLeft;
+    productL.text = [NSString stringWithFormat:@"(%@)",[productDic objectForKey:[NSString stringWithFormat:@"%@",_productType]]];
+    [addressV addSubview:productL];
+    
+    UILabel *useTimeL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(estimateL.frame), 345*SCREENW_RATE, 40*SCREENW_RATE)];
+    useTimeL.backgroundColor = [UIColor whiteColor];
+    useTimeL.textColor = RGB(51, 51, 51);
+    useTimeL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+    useTimeL.textAlignment = NSTextAlignmentCenter;
+    useTimeL.text = [NSString stringWithFormat:@"用车时间 %@",_useTime];
+    [addressV addSubview:useTimeL];
+        [self tikTok];
    
 }
 - (void)start:(UIButton *)robBtn
@@ -188,7 +213,8 @@
             [self presentViewController:alertC animated:YES completion:nil];
         }
         
-    } andFailedBlock:^(NSError *error) {
+    }
+    andFailedBlock:^(NSError *error) {
         
     }];
     
@@ -206,6 +232,7 @@
         restL.userInteractionEnabled = YES;
         if ([data[@"status"]isEqualToString:@"9000"])
         {
+            
             [self dismissViewControllerAnimated:YES completion:^{
                 _block(@"rest");
             }];
@@ -226,20 +253,20 @@
 
 - (void)tikTok
 {
-    __block NSInteger time = 60; //倒计时时间
+    
+    __block NSInteger time = 10; //倒计时时间
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_source_t _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+     _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
     dispatch_source_set_timer(_timer,dispatch_walltime(NULL, 0),1.0*NSEC_PER_SEC, 0); //每秒执行
     dispatch_source_set_event_handler(_timer, ^{
         if(time <= 0){ //倒计时结束，关闭
             dispatch_source_cancel(_timer);
             dispatch_async(dispatch_get_main_queue(), ^{
-               
                 __weak BackGroundViewController *weakSelf = self;
                 [weakSelf giveUp];
                 
             });
-        }else{
+         }else{
             //int seconds = time % 4;
             dispatch_async(dispatch_get_main_queue(), ^{
                 
@@ -270,6 +297,7 @@
                  
              }];
              _block(@"giveUp");
+            
              
          }
          else if ([data[@"status"]isEqualToString:@"1000"])

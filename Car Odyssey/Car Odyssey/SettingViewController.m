@@ -13,7 +13,7 @@
 #import "DriverGuideViewController.h"
 #import "CheckNewViewController.h"
 #import "FeedBackViewController.h"
-#import "ViewController.h"
+#import "LoginViewController.h"
 #import "NetManager.h"
 #import <MMDrawerController.h>
 #define SCREENW [UIScreen mainScreen].bounds.size.width
@@ -247,14 +247,13 @@
 - (void)exitLog
 {
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    [ud setBool:NO forKey:@"isLogin"];
+    [ud setObject:@"noLog" forKey:@"isLogin"];
     [ud removeObjectForKey:@"name"];
     [ud removeObjectForKey:@"license"];
-//    [ud removeObjectForKey:@"userid"];
     [ud synchronize];
     
     [self.navigationController popViewControllerAnimated:YES];
-    ViewController *Logvc = [[ViewController alloc]init];
+    LoginViewController *Logvc = [[LoginViewController alloc]init];
     UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:Logvc];
     AppDelegate *appdle = (AppDelegate *)[[UIApplication sharedApplication]delegate];
     appdle.window.rootViewController = nav;

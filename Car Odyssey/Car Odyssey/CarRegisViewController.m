@@ -14,8 +14,7 @@
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
 #define RGB(r,g,b) [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:1.0]
-//#define postImageAPI @"http://115.29.246.88:9999/common/upload"
-#define postImageAPI @"http://172.16.3.127/app/portal.htm/app/upload.htm"
+#define postImageAPI @"http://115.29.246.88:9999/common/upload"
 @interface CarRegisViewController ()<UIPickerViewDataSource,UIPickerViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate>
 {
     UITextField *tureNameTF;
