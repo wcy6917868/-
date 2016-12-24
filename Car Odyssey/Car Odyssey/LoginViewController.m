@@ -15,6 +15,7 @@
 #import "ForgetPassWordViewController.h"
 #import "Ultitly.h"
 #import "JPUSHService.h"
+#import <MBProgressHUD.h>
 #define LoginAPI @"http://115.29.246.88:9999/account/login"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
@@ -97,6 +98,7 @@
     passWord.borderStyle = UITextBorderStyleNone;
     passWord.backgroundColor = [UIColor whiteColor];
     passWord.placeholder = @"请输入密码";
+    passWord.secureTextEntry = YES;
     passWord.clearsOnBeginEditing = YES;
     passWord.leftView = passL;
     
@@ -169,6 +171,7 @@
 {
     if (user.text.length > 0 && passWord.text.length > 0)
     {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
         selectedBtn.userInteractionEnabled = NO;
         NSMutableDictionary *paramterDic = [NSMutableDictionary dictionary];
         [paramterDic setObject:user.text forKey:@"mobile"];
@@ -178,6 +181,7 @@
             selectedBtn.userInteractionEnabled = YES;
             if ([data[@"status"]isEqualToString:@"9000"])
             {
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
                 [Ultitly shareInstance].id = data[@"data"][@"id"];
                 
                 NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
@@ -201,6 +205,7 @@
             }
             else if ([data[@"status"]isEqualToString:@"1000"])
             {
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
                 UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
                 [alertC addAction:action];
@@ -209,6 +214,7 @@
         }
          andFailedBlock:^(NSError *error)
          {
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
              selectedBtn.userInteractionEnabled = YES;
         }];
     }
@@ -239,10 +245,11 @@
 
 - (void)delayMethod
 {
-    MapViewController *MVC = [[MapViewController alloc]init];
-    [self.navigationController pushViewController:MVC animated:YES];
-    
     AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+    MapViewController *MVC = [[MapViewController alloc]init];
+    appdel.mapViewController = MVC;
+    [appdel setDrawwer];
+    MVC.checkUnfinished = @"isCheck";
     appdel.window.tintColor = [UIColor blueColor];
     appdel.window.rootViewController = appdel.drawerController;
 }

@@ -44,13 +44,13 @@
         lineV.backgroundColor = RGB(238, 238, 238);
         [self.contentView addSubview:lineV];
         
-        _getL = [[UILabel alloc]initWithFrame:CGRectMake(20*SCREENW_RATE, CGRectGetMaxY(lineV.frame)+11*SCREENW_RATE, 300*SCREENW_RATE, 28*SCREENW_RATE)];
-        _getL.font = [UIFont systemFontOfSize:14];
+        _getL = [[UILabel alloc]initWithFrame:CGRectMake(20*SCREENW_RATE, CGRectGetMaxY(lineV.frame)+11*SCREENW_RATE, 270*SCREENW_RATE, 28*SCREENW_RATE)];
+        _getL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
         _getL.textColor = RGB(102, 102, 102);
         [self.contentView addSubview:_getL];
         
-        _arriveL = [[UILabel alloc]initWithFrame:CGRectMake(_getL.frame.origin.x, CGRectGetMaxY(_getL.frame), 300*SCREENW_RATE, 28*SCREENW_RATE)];
-        _arriveL.font = [UIFont systemFontOfSize:14];
+        _arriveL = [[UILabel alloc]initWithFrame:CGRectMake(_getL.frame.origin.x, CGRectGetMaxY(_getL.frame), 270*SCREENW_RATE, 28*SCREENW_RATE)];
+        _arriveL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
         _arriveL.textColor = RGB(102, 102, 102);
         [self.contentView addSubview:_arriveL];
         

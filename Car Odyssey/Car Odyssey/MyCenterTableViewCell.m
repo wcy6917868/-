@@ -34,7 +34,7 @@
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
         NSString *pointNum = [ud objectForKey:@"accountintegral"];
         [_integralBtn setTitle:[NSString stringWithFormat:@"%@",pointNum] forState:UIControlStateNormal];
-        _integralBtn.titleLabel.font = [UIFont systemFontOfSize:14];
+        _integralBtn.titleLabel.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
         _integralBtn.hidden = YES;
         [self.contentView addSubview:_integralBtn];
     }

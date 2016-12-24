@@ -312,7 +312,7 @@
 
 - (void)delete
 {
-    if (_dataArray.count != 0)
+    if (BoolArray.count != 0)
     {
         UIView *backGroundV = [[UIView alloc]initWithFrame:self.view.bounds];
         backGroundV.backgroundColor = [UIColor blackColor];
@@ -364,8 +364,8 @@
             isClick = YES;
             [self.tableV reloadData];
         }];
-        [alertC addAction:action1];
         [alertC addAction:cancel];
+        [alertC addAction:action1];
         [self presentViewController:alertC animated:YES completion:nil];
     }
     else

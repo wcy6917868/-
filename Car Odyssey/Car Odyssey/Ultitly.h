@@ -33,6 +33,8 @@
 @property (nonatomic,copy)NSString *mileage;
 @property (nonatomic,copy)NSString *beginLat;
 @property (nonatomic,copy)NSString *beginLng;
+@property (nonatomic,copy)NSString *myOrder;
+@property (nonatomic,copy)NSString *allOrder;
 @property (nonatomic,strong)UIImage *driverA;
 @property (nonatomic,strong)UIImage *driverB;
 @property (nonatomic,strong)UIImage *travelA;
@@ -46,5 +48,7 @@
 - (void)showMBProgressHUD:(UIView *)view withShowStr:(NSString *)str;
 
 - (void)showMBProgressHUDup:(UIView *)view withShowStr:(NSString *)str;
+
+- (void)showWaitCircle:(BOOL)showCircle inTheView:(UIView *)view;
 
 @end

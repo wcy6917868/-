@@ -10,5 +10,6 @@
 
 @interface LeftSliderViewController : UIViewController
 @property (nonatomic,strong)void (^block)(NSString *);
+@property (nonatomic,strong)UITableView *tableV;
 
 @end

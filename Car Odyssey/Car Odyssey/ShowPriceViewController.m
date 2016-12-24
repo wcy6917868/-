@@ -152,7 +152,7 @@
         [paraDic setObject:emptyCost.text forKey:@"idling"];
         [paraDic setObject:stayCost.text forKey:@"stay"];
         [paraDic setObject:foodCost.text forKey:@"food"];
-        [paraDic setObject:[Ultitly shareInstance].mileage forKey:@"mileage"];
+        [paraDic setObject:[Ultitly shareInstance].fareCost forKey:@"mileage"];
         [paraDic setObject:over_mileage.text forKey:@"over_mileage"];
         [paraDic setObject:over_time.text forKey:@"over_time"];
         [paraDic setObject:highroad.text forKey:@"highroad"];

@@ -21,6 +21,8 @@
     UIImageView *imageV;
     UILabel *cityLabel;
     NSDictionary *areaDic;
+    BOOL ChooseCity;
+    BOOL ChooseSex;
 }
 @property (nonatomic,strong)UIImagePickerController *pickerC;
 @property (nonatomic,strong)NSArray *provinceArray;
@@ -44,7 +46,8 @@
     _provinceArray = @[@"北京",@"天津",@"上海",@"重庆",@"河北省",@"河南省",@"云南省",@"辽宁省",@"黑龙江省",@"湖南省",@"安徽省",@"山东省",@"新疆维吾尔自治区",@"江苏省",@"浙江省",@"江西省",@"湖北省",@"广西壮族自治区",@"甘肃省",@"山西省",@"内蒙古",@"陕西省",@"吉林省",@"福建省",@"贵州省",@"广东省",@"青海省",@"西藏自治区",@"四川省",@"宁夏回族自治区",@"海南省",@"台湾省",@"香港特别行政区",@"澳门特别行政区",@"海外"];
     
     //各省标识
-    areaDic = @{@"北京":@"1",@"天津":@"2",@"河北省":@"3",@"山西省":@"4",@"内蒙古自治区":@"5",@"辽宁省":@"6",@"吉林省":@"7",@"黑龙江省":@"8",@"上海":@"9",@"江苏省":@"10",@"浙江省":@"11",@"安徽省":@"12",@"福建省":@"13",@"14":@"江西省",@"15":@"山东省",@"16":@"河南省",@"17":@"湖北省",@"18":@"湖南省",@"19":@"广东省",@"20":@"广西壮族自治区",@"21":@"海南省",@"22":@"重庆",@"23":@"四川省",@"24":@"贵州省",@"25":@"云南省",@"26":@"西藏自治区",@"27":@"陕西省",@"28":@"甘肃省",@"29":@"青海省",@"30":@"宁夏回族自治区",@"31":@"新疆维吾尔自治区",@"32":@"台湾省",@"33":@"香港特别行政区",@"34":@"澳门特别行政区"};
+    areaDic = @{@"北京":@"1",@"天津":@"2",@"河北省":@"3",@"山西省":@"4",@"内蒙古自治区":@"5",@"辽宁省":@"6",@"吉林省":@"7",@"黑龙江省":@"8",@"上海":@"9",@"江苏省":@"10",@"浙江省":@"11",@"安徽省":@"12",@"福建省":@"13",@"江西省":@"14",@"山东省":@"15",@"河南省":@"16",@"湖北省":@"17",@"湖南省":@"18",@"广东省":@"19",@"广西壮族自治区":@"20",@"海南省":@"21",@"重庆":@"22",@"四川省":@"23",@"贵州省":@"24",@"云南省":@"25",@"西藏自治区":@"26",@"陕西省":@"27",@"甘肃省":@"28",@"青海省":@"29",@"宁夏回族自治区":@"30",@"新疆维吾尔自治区":@"31",@"台湾省":@"32",@"香港特别行政区":@"33",@"澳门特别行政区":@"34"};
+    
 }
 
 - (void)configNav
@@ -67,12 +70,15 @@
 
 - (void)configUI
 {
+    ChooseCity = NO;
+    ChooseSex = NO;
+    
     UIView *headV = [[UIView alloc]initWithFrame:CGRectMake(0, 64*SCREENW_RATE, SCREENW, 90*SCREENW_RATE)];
     headV.backgroundColor = [UIColor whiteColor];
     UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 0, 70*SCREENW_RATE, 90*SCREENW_RATE)];
     label.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     label.textColor = RGB(51, 51, 51);
-    label.text = @"用户昵称";
+    label.text = @"用户头像";
     [headV addSubview:label];
     [self.view addSubview:headV];
     
@@ -80,7 +86,7 @@
     NSString *portraitStr = [ud objectForKey:@"headportrait"];
     imageV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 59*SCREENW_RATE, 59*SCREENW_RATE)];
     imageV.center = CGPointMake(SCREENW - 70*SCREENW_RATE, CGRectGetMidY(headV.frame));
-    imageV.layer.cornerRadius = 28.0f;
+    imageV.layer.cornerRadius = 28.0f*SCREENW_RATE;
     imageV.layer.masksToBounds = YES;
     [imageV sd_setImageWithURL:[NSURL URLWithString:portraitStr]];
     imageV.userInteractionEnabled = YES;
@@ -97,8 +103,8 @@
     arrowV.image = [UIImage imageNamed:@"arrow_right"];
     [self.view addSubview:arrowV];
     
-    NSArray *titleArr = @[@"城市",@"性别",@"年龄"];
-    for (int i = 0; i < 3; i ++)
+    NSArray *titleArr = @[@"姓名",@"城市",@"性别",@"年龄"];
+    for (int i = 0; i < 4; i ++)
     {
         UILabel *infoL = [[UILabel alloc]initWithFrame:CGRectMake(0, ((CGRectGetMaxY(headV.frame)+10)+ i*50)*SCREENW_RATE, SCREENW, 50*SCREENW_RATE)];
         infoL.backgroundColor = [UIColor whiteColor];
@@ -110,6 +116,19 @@
         infoL.text = [NSString stringWithFormat:@"   %@",titleArr[i]];
         [self.view addSubview:infoL];
         if (i == 0)
+        {
+            
+            NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+            NSString *personName = [ud objectForKey:@"name"];
+            UILabel *nameL = [[UILabel alloc]initWithFrame:CGRectMake(SCREENW - 125*SCREENW_RATE, infoL.frame.origin.y+1, 110*SCREENW_RATE, 48*SCREENW_RATE)];
+            nameL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+            nameL.textColor = RGB(51, 51, 51);
+            nameL.text = personName;
+            nameL.textAlignment = NSTextAlignmentRight;
+            [self.view insertSubview:nameL aboveSubview:infoL];
+            
+        }
+        else if (i == 1)
         {
             NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
             NSString *personCity = [ud objectForKey:@"city"];
@@ -124,7 +143,7 @@
             [cityLabel addGestureRecognizer:cityTap];
             [self.view insertSubview:cityLabel aboveSubview:infoL];
         }
-        else if (i == 1)
+        else if (i == 2)
         {
             NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
             NSString *gender = [NSString stringWithFormat:@"%@",[ud objectForKey:@"gender"]];
@@ -145,17 +164,17 @@
             [infoL addGestureRecognizer:tap];
             [self.view insertSubview:sexL aboveSubview:infoL];
         }
-        else if (i == 2)
+        else if (i == 3)
         {
             NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
             NSString *driverAge = [ud objectForKey:@"age"];
-            UITextField *tf = [[UITextField alloc]initWithFrame:CGRectMake(SCREENW - 75*SCREENW_RATE, infoL.frame.origin.y+1*SCREENW_RATE, 55*SCREENW_RATE, 48*SCREENW_RATE)];
+            UITextField *tf = [[UITextField alloc]initWithFrame:CGRectMake(SCREENW - 105*SCREENW_RATE, infoL.frame.origin.y+1*SCREENW_RATE, 95*SCREENW_RATE, 48*SCREENW_RATE)];
             tf.text = driverAge;
             tf.delegate = self;
             tf.tag = 203;
             tf.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
             tf.backgroundColor = [UIColor whiteColor];
-            [tf setAttributedPlaceholder:[[NSAttributedString alloc]initWithString:@"几零后" attributes:@{NSForegroundColorAttributeName:RGB(206, 206, 206)}]];
+            [tf setAttributedPlaceholder:[[NSAttributedString alloc]initWithString:@"请输入年龄" attributes:@{NSForegroundColorAttributeName:RGB(206, 206, 206)}]];
             tf.clearsOnBeginEditing = YES;
             tf.textAlignment = NSTextAlignmentRight;
             [tf addTarget:self action:@selector(changeAge:) forControlEvents:UIControlEventValueChanged];
@@ -171,9 +190,8 @@
 
 - (void)save
 {
-    
-    
     NSString *areaValue = [areaDic objectForKey:cityLabel.text];
+    NSLog(@"%@",areaValue);
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSString *userid = [ud objectForKey:@"userid"];
     UILabel *label = [self.view viewWithTag:200];
@@ -194,6 +212,7 @@
         [paraDic setObject:@"2" forKey:@"gender"];
     }
     [paraDic setObject:tf.text forKey:@"age"];
+    
     [[NetManager shareManager]requestUrlPost:personUpdateAPI andParameter: paraDic withSuccessBlock:^(id data)
     {
         if ([data[@"status"]isEqualToString:@"9000"])
@@ -233,40 +252,45 @@
 
 - (void)chooseSex
 {
-   
-    [UIView animateWithDuration:0.5f animations:^{
-        UIView *sexView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 150*SCREENW_RATE, 100*SCREENW_RATE)];
-        sexView.tag = 201;
-        sexView.center = CGPointMake(SCREENW/2, SCREENH/2+130*SCREENW_RATE);
-        sexView.layer.cornerRadius = 5.0f;
-        sexView.layer.masksToBounds = YES;
-        sexView.layer.borderColor = RGB(238, 238, 238).CGColor;
-        sexView.layer.borderWidth = 0.5f;
-        sexView.backgroundColor = [UIColor whiteColor];
-        [self.view addSubview:sexView];
-        
-        UIButton *boyBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        boyBtn.frame = CGRectMake(0, 3, 150*SCREENW_RATE, 47*SCREENW_RATE);
-        [boyBtn setTitle:@"男生" forState:UIControlStateNormal];
-        [boyBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
-        [boyBtn addTarget:self action:@selector(boy) forControlEvents:UIControlEventTouchUpInside];
-        [sexView addSubview:boyBtn];
-        
-        UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(boyBtn.frame), sexView.bounds.size.width, 1)];
-        lineV.backgroundColor = RGB(238, 238, 238);
-        [sexView addSubview:lineV];
-        
-        UIButton *girlBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        girlBtn.frame = CGRectMake(0, CGRectGetMaxY(lineV.frame), sexView.bounds.size.width, 48*SCREENW_RATE);
-        [girlBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
-        [girlBtn addTarget:self action:@selector(girl) forControlEvents:UIControlEventTouchUpInside];
-        [girlBtn setTitle:@"女生" forState:UIControlStateNormal];
-        [sexView addSubview:girlBtn];
-    }];
+    if (ChooseCity == NO)
+    {
+        ChooseSex = YES;
+        [UIView animateWithDuration:0.5f animations:^{
+            UIView *sexView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 150*SCREENW_RATE, 100*SCREENW_RATE)];
+            sexView.tag = 201;
+            sexView.center = CGPointMake(SCREENW/2, SCREENH/2+130*SCREENW_RATE);
+            sexView.layer.cornerRadius = 5.0f;
+            sexView.layer.masksToBounds = YES;
+            sexView.layer.borderColor = RGB(238, 238, 238).CGColor;
+            sexView.layer.borderWidth = 0.5f;
+            sexView.backgroundColor = [UIColor whiteColor];
+            [self.view addSubview:sexView];
+            
+            UIButton *boyBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            boyBtn.frame = CGRectMake(0, 3, 150*SCREENW_RATE, 47*SCREENW_RATE);
+            [boyBtn setTitle:@"男生" forState:UIControlStateNormal];
+            [boyBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
+            [boyBtn addTarget:self action:@selector(boy) forControlEvents:UIControlEventTouchUpInside];
+            [sexView addSubview:boyBtn];
+            
+            UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(boyBtn.frame), sexView.bounds.size.width, 1)];
+            lineV.backgroundColor = RGB(238, 238, 238);
+            [sexView addSubview:lineV];
+            
+            UIButton *girlBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            girlBtn.frame = CGRectMake(0, CGRectGetMaxY(lineV.frame), sexView.bounds.size.width, 48*SCREENW_RATE);
+            [girlBtn setTitleColor:RGB(37, 155, 255) forState:UIControlStateNormal];
+            [girlBtn addTarget:self action:@selector(girl) forControlEvents:UIControlEventTouchUpInside];
+            [girlBtn setTitle:@"女生" forState:UIControlStateNormal];
+            [sexView addSubview:girlBtn];
+        }];
+    }
+  
 }
 
 - (void)boy
 {
+    ChooseSex = NO;
     UILabel *boyL = [self.view viewWithTag:200];
     UIView *view = [self.view viewWithTag:201];
     boyL.text = @"男生";
@@ -277,6 +301,7 @@
 
 - (void)girl
 {
+    ChooseSex = NO;
     UILabel *girlL = [self.view viewWithTag:200];
     UIView *view = [self.view viewWithTag:201];
     girlL.text = @"女生";
@@ -443,25 +468,28 @@
 
 - (void)sure:(UIButton *)sureBtn
 {
+    ChooseCity = NO;
     cityLabel.userInteractionEnabled = YES;
     NSInteger result = [_pickView selectedRowInComponent:0];
     cityLabel.text = [NSString stringWithFormat:@"%@",self.provinceArray[result]];
-    [_pickView removeFromSuperview ];
+    [_pickView removeFromSuperview];
     [sureBtn removeFromSuperview];
 }
 
 - (void)selectCity
 {
-    [self.view addSubview:[self pickerView]];
-    [self.view insertSubview:[self btn] aboveSubview:_pickView];
-    cityLabel.userInteractionEnabled = NO;
+    if (ChooseSex == NO)
+    {
+        [self.view addSubview:[self pickerView]];
+        [self.view insertSubview:[self btn] aboveSubview:_pickView];
+        cityLabel.userInteractionEnabled = NO;
+        ChooseCity = YES;
+    }
+
 }
 
 
-- (void)delayMethod
-{
-   
-}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

@@ -15,6 +15,7 @@
 #import "FeedBackViewController.h"
 #import "LoginViewController.h"
 #import "NetManager.h"
+#import "MapViewController.h"
 #import <MMDrawerController.h>
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
@@ -57,7 +58,6 @@
 
 - (void)configUI
 {
-    NSLog(@"%@",self.navigationController.viewControllers);
     UIView *telNumV = [[UIView alloc]initWithFrame:CGRectMake(0, 74*SCREENW_RATE, SCREENW, 50*SCREENW_RATE)];
     telNumV.backgroundColor = [UIColor whiteColor];
     UILabel *textL = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 0, 140*SCREENW_RATE, 50*SCREENW_RATE)];
@@ -252,11 +252,17 @@
     [ud removeObjectForKey:@"license"];
     [ud synchronize];
     
-    [self.navigationController popViewControllerAnimated:YES];
+//    [self.navigationController popViewControllerAnimated:YES];
+    
+//    MapViewController *mapVC = self.navigationController.viewControllers[0];
+//    [mapVC.navigationController popViewControllerAnimated:YES];
+    
     LoginViewController *Logvc = [[LoginViewController alloc]init];
     UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:Logvc];
     AppDelegate *appdle = (AppDelegate *)[[UIApplication sharedApplication]delegate];
     appdle.window.rootViewController = nav;
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    NSLog(@"%@",self.navigationController.viewControllers);
     
 }
 

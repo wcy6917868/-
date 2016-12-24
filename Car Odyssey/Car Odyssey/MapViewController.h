@@ -24,12 +24,8 @@
 @property (nonatomic,copy)NSString *destinationlng;
 @property (nonatomic,copy)NSString *startLat;
 @property (nonatomic,copy)NSString *startLng;
+@property (nonatomic,copy)NSString *checkUnfinished;
 
-
-
-//- (void)returnAction;
-
-//- (NSString *)getApplicationName;
-//- (NSString *)getApplicationScheme;
+- (void)uiConfig;
 
 @end

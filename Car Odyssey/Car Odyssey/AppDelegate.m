@@ -22,8 +22,7 @@
 
 @interface AppDelegate ()<JPUSHRegisterDelegate,WXApiDelegate>
 
-@property (nonatomic,strong)LeftSliderViewController *leftViewController;
-@property (nonatomic,strong)MapViewController *mapViewController;
+
 
 @end
 
@@ -108,8 +107,19 @@
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
+    
     [JPUSHService handleRemoteNotification:userInfo];
     completionHandler(UIBackgroundFetchResultNewData);
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSDictionary *aps = [userInfo valueForKey:@"aps"];
+    NSString *content = [aps valueForKey:@"alert"];
+    NSInteger badge = [[aps valueForKey:@"badge"] integerValue];
+    
+    NSLog(@"%@",content);
+    NSLog(@"%ld",badge);
 }
 
 - (void)onResp:(BaseResp *)resp
@@ -132,6 +142,39 @@
 
 - (void)configDrawer
 {
+//    _leftViewController = [[LeftSliderViewController alloc]init];
+//    _mapViewController = [[MapViewController alloc]init];
+//    UINavigationController *leftNav = [[UINavigationController alloc]initWithRootViewController:_leftViewController];
+//    UINavigationController *centerNav = [[UINavigationController alloc]initWithRootViewController:_mapViewController];
+//    [leftNav setRestorationIdentifier:@"leftNavgationControllerRestorationKey"];
+//    [centerNav setRestorationIdentifier:@"centerNavgationControllerRestorationKey"];
+//    _drawerController = [[MMDrawerController alloc]initWithCenterViewController:centerNav leftDrawerViewController:leftNav];
+//    
+//    [self.drawerController setShowsShadow:NO];
+//    [self.drawerController setRestorationIdentifier:@"MMDrawer"];
+//    [self.drawerController setMaximumLeftDrawerWidth:300*SCREENW_RATE];
+//    [self.drawerController setOpenDrawerGestureModeMask:MMOpenDrawerGestureModeAll];
+//    [self.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeAll];
+    
+        [self setDrawwer];
+    
+        ViewController *vc = [[ViewController alloc]init];
+        
+        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
+        
+        self.window.rootViewController = nav;;
+    
+}
+
+//- (void)configKeyBoard
+//{
+//    IQKeyboardManager *keyManager = [IQKeyboardManager sharedManager];
+//    keyManager.shouldResignOnTouchOutside = YES;
+//    keyManager.enableAutoToolbar = NO;
+//}
+
+- (void)setDrawwer
+{
     _leftViewController = [[LeftSliderViewController alloc]init];
     _mapViewController = [[MapViewController alloc]init];
     UINavigationController *leftNav = [[UINavigationController alloc]initWithRootViewController:_leftViewController];
@@ -145,23 +188,7 @@
     [self.drawerController setMaximumLeftDrawerWidth:300*SCREENW_RATE];
     [self.drawerController setOpenDrawerGestureModeMask:MMOpenDrawerGestureModeAll];
     [self.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeAll];
-    
-    
-        ViewController *vc = [[ViewController alloc]init];
-        
-        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
-        
-        self.window.rootViewController = nav;;
-    
-    
 }
-
-//- (void)configKeyBoard
-//{
-//    IQKeyboardManager *keyManager = [IQKeyboardManager sharedManager];
-//    keyManager.shouldResignOnTouchOutside = YES;
-//    keyManager.enableAutoToolbar = NO;
-//}
 
 - (void)setUpNav
 {

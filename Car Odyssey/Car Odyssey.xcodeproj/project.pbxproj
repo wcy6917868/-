@@ -259,8 +259,6 @@
 		4CFC68021D9D0AF7008AF7FD /* weixin@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67F41D9D0AF7008AF7FD /* weixin@3x.png */; };
 		4CFC68031D9D0AF7008AF7FD /* weixuanzhognzhuangtai@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67F51D9D0AF7008AF7FD /* weixuanzhognzhuangtai@2x.png */; };
 		4CFC68041D9D0AF7008AF7FD /* weixuanzhognzhuangtai@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67F61D9D0AF7008AF7FD /* weixuanzhognzhuangtai@3x.png */; };
-		4CFC68071D9D0AF7008AF7FD /* wujiaoxing1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67F91D9D0AF7008AF7FD /* wujiaoxing1@2x.png */; };
-		4CFC68081D9D0AF7008AF7FD /* wujiaoxing1@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67FA1D9D0AF7008AF7FD /* wujiaoxing1@3x.png */; };
 		4CFC68091D9D0AF7008AF7FD /* xuanzhongzhuangtai@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67FB1D9D0AF7008AF7FD /* xuanzhongzhuangtai@2x.png */; };
 		4CFC680A1D9D0AF7008AF7FD /* xuanzhongzhuangtai@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFC67FC1D9D0AF7008AF7FD /* xuanzhongzhuangtai@3x.png */; };
 		4CFC680D1D9D6A86008AF7FD /* SettingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CFC680C1D9D6A86008AF7FD /* SettingViewController.m */; };
@@ -607,8 +605,6 @@
 		4CFC67F41D9D0AF7008AF7FD /* weixin@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "weixin@3x.png"; sourceTree = "<group>"; };
 		4CFC67F51D9D0AF7008AF7FD /* weixuanzhognzhuangtai@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "weixuanzhognzhuangtai@2x.png"; sourceTree = "<group>"; };
 		4CFC67F61D9D0AF7008AF7FD /* weixuanzhognzhuangtai@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "weixuanzhognzhuangtai@3x.png"; sourceTree = "<group>"; };
-		4CFC67F91D9D0AF7008AF7FD /* wujiaoxing1@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wujiaoxing1@2x.png"; sourceTree = "<group>"; };
-		4CFC67FA1D9D0AF7008AF7FD /* wujiaoxing1@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wujiaoxing1@3x.png"; sourceTree = "<group>"; };
 		4CFC67FB1D9D0AF7008AF7FD /* xuanzhongzhuangtai@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "xuanzhongzhuangtai@2x.png"; sourceTree = "<group>"; };
 		4CFC67FC1D9D0AF7008AF7FD /* xuanzhongzhuangtai@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "xuanzhongzhuangtai@3x.png"; sourceTree = "<group>"; };
 		4CFC680B1D9D6A86008AF7FD /* SettingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingViewController.h; sourceTree = "<group>"; };
@@ -1250,8 +1246,6 @@
 				4CFC67F41D9D0AF7008AF7FD /* weixin@3x.png */,
 				4CFC67F51D9D0AF7008AF7FD /* weixuanzhognzhuangtai@2x.png */,
 				4CFC67F61D9D0AF7008AF7FD /* weixuanzhognzhuangtai@3x.png */,
-				4CFC67F91D9D0AF7008AF7FD /* wujiaoxing1@2x.png */,
-				4CFC67FA1D9D0AF7008AF7FD /* wujiaoxing1@3x.png */,
 				4CFC67FB1D9D0AF7008AF7FD /* xuanzhongzhuangtai@2x.png */,
 				4CFC67FC1D9D0AF7008AF7FD /* xuanzhongzhuangtai@3x.png */,
 			);
@@ -1514,7 +1508,6 @@
 				4CF80C5A1D9A644600EF2083 /* sjh_dq@2x.png in Resources */,
 				4C0D110A1DC351720096C8B2 /* guanbi4@2x.png in Resources */,
 				4CFC67E91D9D02FA008AF7FD /* xuanzhongzhuangtai@2x.png in Resources */,
-				4CFC68071D9D0AF7008AF7FD /* wujiaoxing1@2x.png in Resources */,
 				4CFA8F121D94C99200AD7F5D /* dianhua1@3x.png in Resources */,
 				4CF80C791D9A644600EF2083 /* 意见反馈_spec.png in Resources */,
 				4C30ADEF1D8FCB86003B73D6 /* logo@3x.png in Resources */,
@@ -1561,7 +1554,6 @@
 				4CFA8EE31D94C5CE00AD7F5D /* xx1.jpg in Resources */,
 				4C30AD3E1D8F87CD003B73D6 /* LaunchScreen.storyboard in Resources */,
 				4CFA8F181D94C99200AD7F5D /* red0@3x.png in Resources */,
-				4CFC68081D9D0AF7008AF7FD /* wujiaoxing1@3x.png in Resources */,
 				4CF80C3E1D9A644600EF2083 /* chongzhijilu@2x.png in Resources */,
 				4CFC68091D9D0AF7008AF7FD /* xuanzhongzhuangtai@2x.png in Resources */,
 				4CFA8F211D94C99200AD7F5D /* xiala_bai@2x.png in Resources */,

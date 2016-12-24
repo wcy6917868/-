@@ -8,6 +8,7 @@
 
 #import "BackGroundViewController.h"
 #import "ShowPriceViewController.h"
+#import <MBProgressHUD.h>
 #import "NetManager.h"
 #import "Ultitly.h"
 #define SCREENW [UIScreen mainScreen].bounds.size.width
@@ -52,7 +53,6 @@
 
 - (void)uiConfig
 {
-
     restL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 50*SCREENW_RATE ,50*SCREENW_RATE )];
     restL.center = CGPointMake(60*SCREENW_RATE, SCREENH - 59*SCREENW_RATE);
     restL.font = [UIFont systemFontOfSize:15];
@@ -98,7 +98,7 @@
     addressV.center = CGPointMake(187.5*SCREENW_RATE, 275*SCREENW_RATE);
     addressV.layer.cornerRadius = 12.0*SCREENW_RATE;
     addressV.layer.masksToBounds = YES;
-    addressV.backgroundColor = RGB(238, 238, 238);
+    addressV.backgroundColor = RGB(255, 255, 255);
     [self.view addSubview:addressV];
     
     UILabel *kiloL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 345*SCREENW_RATE, 55*SCREENW_RATE)];
@@ -129,13 +129,14 @@
     [addressV addSubview:view1];
     
     UIImageView *blueV = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 10*SCREENW_RATE)];
-    blueV.center = CGPointMake(30*SCREENW_RATE, 65*SCREENW_RATE);
+    blueV.center = CGPointMake(30*SCREENW_RATE, 45*SCREENW_RATE);
     blueV.image = [UIImage imageNamed:@"blue0"];
     [view1 addSubview:blueV];
     
-    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+11*SCREENW_RATE, 43*SCREENW_RATE, 300*SCREENW_RATE, 45*SCREENW_RATE)];
+    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+10*SCREENW_RATE, 0, 320*SCREENW_RATE, 88*SCREENW_RATE)];
     shangcheL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     shangcheL.textColor = RGB(68, 68, 68);
+    shangcheL.numberOfLines = 0;
     shangcheL.text = [NSString stringWithFormat:@"  上车地点 : %@",_outsetStr];
     [view1 addSubview:shangcheL];
     
@@ -148,13 +149,18 @@
     redV.image = [UIImage imageNamed:@"red0"];
     [view1 addSubview:redV];
     
-    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 300*SCREENW_RATE, 88*SCREENW_RATE)];
+    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 320*SCREENW_RATE, 88*SCREENW_RATE)];
     daodaL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     daodaL.textColor = RGB(68, 68, 68);
+    daodaL.numberOfLines = 0;
     daodaL.text = [NSString stringWithFormat:@"   到达地点 : %@",_finishStr];
     [view1 addSubview:daodaL];
     
-    UILabel *estimateL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(view1.frame)+5*SCREENW_RATE, 250*SCREENW_RATE, 40*SCREENW_RATE)];
+    UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(view1.bounds)-5*SCREENW_RATE, 345*SCREENW_RATE, 5*SCREENW_RATE)];
+    lineV1.backgroundColor = RGB(238, 238, 238);
+    [view1 addSubview:lineV1];
+    
+    UILabel *estimateL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(view1.frame), 250*SCREENW_RATE, 40*SCREENW_RATE)];
     estimateL.backgroundColor = [UIColor whiteColor];
     estimateL.textColor = RGB(51, 51, 51);
     estimateL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
@@ -177,29 +183,31 @@
     productL.text = [NSString stringWithFormat:@"(%@)",[productDic objectForKey:[NSString stringWithFormat:@"%@",_productType]]];
     [addressV addSubview:productL];
     
-    UILabel *useTimeL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(estimateL.frame), 345*SCREENW_RATE, 40*SCREENW_RATE)];
+    UILabel *useTimeL = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(estimateL.frame), 345*SCREENW_RATE, 26*SCREENW_RATE)];
     useTimeL.backgroundColor = [UIColor whiteColor];
     useTimeL.textColor = RGB(51, 51, 51);
     useTimeL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     useTimeL.textAlignment = NSTextAlignmentCenter;
     useTimeL.text = [NSString stringWithFormat:@"用车时间 %@",_useTime];
     [addressV addSubview:useTimeL];
-        [self tikTok];
+           [self tikTok];
    
 }
 - (void)start:(UIButton *)robBtn
 {
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     robBtn.userInteractionEnabled = NO;
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSString *userid = [ud objectForKey:@"userid"];
     NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
     [paraDic setObject:userid forKey:@"id"];
     [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
-    [[NetManager shareManager]requestUrlPost:RobListAPI andParameter:paraDic withSuccessBlock:^(id data) {
+    [[NetManager shareManager]requestUrlPost:RobListAPI andParameter:paraDic withSuccessBlock:^(id data)
+    {
         robBtn.userInteractionEnabled = YES;
         if ([data[@"status"]isEqualToString:@"9000"])
         {
-
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
       [self dismissViewControllerAnimated:YES completion:^{
                     _block(@"1");}
        ];
@@ -207,6 +215,8 @@
         }
         else if ([data[@"status"]isEqualToString:@"1000"])
         {
+            robBtn.userInteractionEnabled = NO;
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
             UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
             UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
             [alertC addAction:action];
@@ -215,13 +225,15 @@
         
     }
     andFailedBlock:^(NSError *error) {
-        
+        robBtn.userInteractionEnabled = NO;
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
     }];
     
     }
 
 - (void)rest
 {
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     restL.userInteractionEnabled = NO;
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSString *userid = [ud objectForKey:@"userid"];
@@ -232,6 +244,7 @@
         restL.userInteractionEnabled = YES;
         if ([data[@"status"]isEqualToString:@"9000"])
         {
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
             
             [self dismissViewControllerAnimated:YES completion:^{
                 _block(@"rest");

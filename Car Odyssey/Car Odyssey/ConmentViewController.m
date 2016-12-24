@@ -33,7 +33,7 @@
 - (void)configNav
 {
     self.navigationController.navigationBar.barTintColor = RGB(37, 155, 255);
-    self.navigationItem.title = @"评论消息";
+    self.navigationItem.title = @"消息";
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSFontAttributeName:[UIFont systemFontOfSize:18],
        NSForegroundColorAttributeName:RGB(255, 255, 255)}];

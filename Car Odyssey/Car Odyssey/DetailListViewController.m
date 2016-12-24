@@ -195,7 +195,52 @@
         lineV.backgroundColor = RGB(238, 238, 238);
         [self.view addSubview:lineV];
         
-        UIView *listDetialView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(incomeView.frame), SCREENW, 50*SCREENW_RATE)];
+        UIView *OrderView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(incomeView.frame), SCREENW, 50*SCREENW_RATE)];
+        //OrderView.tag = 110;
+        OrderView.backgroundColor = [UIColor whiteColor];
+        UILabel *OrderL = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 0, 140*SCREENW_RATE, 50*SCREENW_RATE)];
+        OrderL.textColor = RGB(136, 136, 136);
+        OrderL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+        OrderL.text = @"订单号码";
+        
+        UILabel *orderNumL = [[UILabel alloc]initWithFrame:CGRectMake(SCREENW - 220*SCREENW_RATE, 0, 200*SCREENW_RATE, 50*SCREENW_RATE)];
+        orderNumL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+        orderNumL.textColor = RGB(68, 68, 68);
+        orderNumL.text = _orderModel.order_sn;
+        orderNumL.textAlignment = NSTextAlignmentRight;
+        [OrderView addSubview:orderNumL];
+        [OrderView addSubview:OrderL];
+        [self.view addSubview:OrderView];
+        
+        UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(OrderView.frame) - 1, SCREENW, 1*SCREENW_RATE)];
+        lineV1.backgroundColor = RGB(238, 238, 238);
+        [self.view addSubview:lineV1];
+
+        UIView *phoneNumView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(OrderView.frame), SCREENW, 50*SCREENW_RATE)];
+        phoneNumView.userInteractionEnabled = YES;
+        UITapGestureRecognizer *callCoustomTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(call)];
+        [phoneNumView addGestureRecognizer:callCoustomTap];
+        phoneNumView.backgroundColor = [UIColor whiteColor];
+        UILabel *phoneL = [[UILabel alloc]initWithFrame:CGRectMake(15*SCREENW_RATE, 0, 140*SCREENW_RATE, 50*SCREENW_RATE)];
+        phoneL.textColor = RGB(136, 136, 136);
+        phoneL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+        phoneL.text = @"乘客电话";
+        
+        UILabel *phoneNum = [[UILabel alloc]initWithFrame:CGRectMake(SCREENW - 220*SCREENW_RATE, 0, 200*SCREENW_RATE, 50*SCREENW_RATE)];
+        phoneNum.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+        phoneNum.textColor = RGB(68, 68, 68);
+        phoneNum.text = _orderModel.mobile;
+        phoneNum.textAlignment = NSTextAlignmentRight;
+        [phoneNumView addSubview:phoneNum];
+        [phoneNumView addSubview:phoneL];
+        [self.view addSubview:phoneNumView];
+        
+        UIView *lineV22 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(phoneNumView.frame) - 1, SCREENW, 1*SCREENW_RATE)];
+        lineV22.backgroundColor = RGB(238, 238, 238);
+        [self.view addSubview:lineV22];
+
+        
+        UIView *listDetialView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(phoneNumView.frame), SCREENW, 50*SCREENW_RATE)];
         listDetialView.tag = 110;
         listDetialView.backgroundColor = [UIColor whiteColor];
         listDetialView.userInteractionEnabled = YES;
@@ -208,9 +253,9 @@
         [listDetialView addSubview:detialTextL];
         [self.view addSubview:listDetialView];
         
-        UIView *lineV1 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(listDetialView.frame) - 1, SCREENW, 1*SCREENW_RATE)];
-        lineV1.backgroundColor = RGB(238, 238, 238);
-        [self.view addSubview:lineV1];
+        UIView *lineV2 = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(listDetialView.frame) - 1, SCREENW, 1*SCREENW_RATE)];
+        lineV2.backgroundColor = RGB(238, 238, 238);
+        [self.view addSubview:lineV2];
         
         UIImageView *arrowM = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 10*SCREENW_RATE, 18*SCREENW_RATE)];
         arrowM.center = CGPointMake(SCREENW - 26*SCREENW_RATE, 25*SCREENW_RATE);
@@ -252,7 +297,7 @@
             UIButton *giveUpOrder = [UIButton buttonWithType:UIButtonTypeCustom];
             giveUpOrder.frame = CGRectMake(0, SCREENH - 50*SCREENW_RATE, SCREENW/2, 50*SCREENW_RATE);
             giveUpOrder.backgroundColor = RGB(37, 155, 255);
-            [giveUpOrder setTitle:@"放弃订单" forState:UIControlStateNormal];
+            [giveUpOrder setTitle:@"改派订单" forState:UIControlStateNormal];
             [giveUpOrder setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
             [giveUpOrder addTarget:self action:@selector(giveuporder) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:giveUpOrder];
@@ -279,6 +324,14 @@
     FareDetailController *fareVC = [[FareDetailController alloc]init];
     fareVC.Jmodel = _orderModel;
     [self.navigationController pushViewController:fareVC animated:YES];
+}
+
+- (void)call
+{
+    NSMutableString *str = [[NSMutableString alloc]initWithFormat:@"tel:%@",_orderModel.mobile];
+    UIWebView *callWebView = [[UIWebView alloc]init];
+    [callWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:str]]];
+    [self.view addSubview:callWebView];
 }
 
 - (void)robList:(UIButton *)robButton
@@ -320,8 +373,8 @@
 
     }];
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:nil];
-    [sureAlert addAction:sureAction];
     [sureAlert addAction:cancelAction];
+    [sureAlert addAction:sureAction];
     [self presentViewController:sureAlert animated:YES completion:nil];
 
 }

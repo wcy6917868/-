@@ -46,6 +46,13 @@
     [hud hide:YES afterDelay:2];
 }
 
+//- (void)showWaitCircle:(BOOL)showCircle inTheView:(UIView *)view
+//{
+//    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+//    hud.animationType = MBProgressHUDAnimationFade;
+//    hud.mode = MBProgressHUDModeAnnularDeterminate;
+//    [hud hide:showCircle];
+//}
 
 
 @end

@@ -16,6 +16,7 @@
 #import "RecommendViewController.h"
 #import "AllOrderViewController.h"
 #import "AppDelegate.h"
+#import "Ultitly.h"
 #import <UIImageView+WebCache.h>
 
 #define SCREENW [UIScreen mainScreen].bounds.size.width
@@ -30,7 +31,6 @@
     UILabel *driverName;
     UILabel *driverNum;
 }
-@property (nonatomic,strong)UITableView *tableV;
 @property (nonatomic,strong)NSArray *imageArr;
 @property (nonatomic,strong)NSArray *titleArr;
 
@@ -139,17 +139,28 @@
 {
     static NSString *cellID = @"cell";
     MyCenterTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
-    if (!cell) {
+    if (!cell)
+    {
      cell = [[MyCenterTableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
-            }
+    }
     cell.backgroundColor = RGB(36, 30, 61);
-    
     cell.imageV.image = [UIImage imageNamed:_imageArr[indexPath.row]];
     cell.textL.text = _titleArr[indexPath.row];
-    if (indexPath.row == 3)
-    {
-        cell.integralBtn.hidden = NO;
-    
+    switch (indexPath.row) {
+        case 0:
+        {
+            cell.integralBtn.hidden = NO;
+            [cell.integralBtn setTitle:[NSString stringWithFormat:@"%@",[Ultitly shareInstance].myOrder] forState:UIControlStateNormal];
+        }
+            break;
+        case 2:
+        {
+            cell.integralBtn.hidden = NO;
+            [cell.integralBtn setTitle:[NSString stringWithFormat:@"%@",[Ultitly shareInstance].allOrder] forState:UIControlStateNormal];
+        }
+            break;
+        default:
+            break;
     }
     return  cell;
 }

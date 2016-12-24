@@ -102,7 +102,7 @@
              [ud setObject:data[@"data"][@"locid"] forKey:@"city"];
              [ud synchronize];
              
-             [JPUSHService setTags:data[@"data"][@"jg_tags"] aliasInbackground:data[@"data"][@"jg_alias"]];
+             [JPUSHService setAlias:data[@"data"][@"jg_alias"] callbackSelector:nil object:nil];
              [self goMap];
          }
          else if ([data[@"status"]isEqualToString:@"1000"])
@@ -119,38 +119,6 @@
      }];
 }
 
-//    UIButton *Logbtn = [UIButton buttonWithType:UIButtonTypeCustom];
-//    Logbtn.frame = CGRectMake(105*SCREENW_RATE, SCREENH - 97.5*SCREENW_RATE, 150*SCREENW_RATE, 50*SCREENW_RATE);
-//    [Logbtn.layer setMasksToBounds:YES];
-//    [Logbtn.layer setCornerRadius:5.0];
-//    [Logbtn setBackgroundColor:RGB(37, 155, 255)];
-//    [Logbtn setTitle:@"登录" forState:UIControlStateNormal];
-//    Logbtn.titleLabel.font = [UIFont systemFontOfSize:18];
-//    [Logbtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
-//    [Logbtn addTarget:self action:@selector(pushLog) forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:Logbtn];
-//    
-//    UIImageView *carImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 48*SCREENW_RATE, 56*SCREENW_RATE)];
-//    carImage.center = CGPointMake(SCREENW/2, 94*SCREENW_RATE);
-//    carImage.image  = [UIImage imageNamed:@"logo_shouye"];
-//    [self.view insertSubview:carImage aboveSubview:backgroundImage];
-//    
-//    UIImageView *BnxImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 260*SCREENW_RATE, 38*SCREENW_RATE)];
-//    BnxImage.center = CGPointMake(SCREENW/2, (CGRectGetMaxY(carImage.frame)+36)*SCREENW_RATE);
-//    BnxImage.image  = [UIImage imageNamed:@"cmxbnx"];
-//    [self.view insertSubview:BnxImage aboveSubview:backgroundImage];
-//    
-//    UILabel *bnxL = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 200*SCREENW_RATE, 36*SCREENW_RATE)];
-//    bnxL.center = CGPointMake(SCREENW/2, CGRectGetMaxY(BnxImage.frame)+18*SCREENW_RATE);
-//    bnxL.textColor = RGB(255, 255, 255);
-//    bnxL.textAlignment = NSTextAlignmentCenter;
-//    bnxL.font = [UIFont systemFontOfSize:14*SCREENW_RATE];
-//    bnxL.text = @"大 数 据 - 共 享 经 济 - 环 保";
-//    
-//    [self.view insertSubview:bnxL aboveSubview:backgroundImage];
-//    
-    
-
 - (void)getNetPicture
 {
     [[NetManager shareManager]requestUrlGet:LaunchPicAPI withSuccessBlock:^(id data)
@@ -158,7 +126,7 @@
          if ([data[@"status"]isEqualToString:@"9000"])
          {
              _lauchStr = [NSString stringWithFormat:@"http://115.29.246.88:9999/%@",data[@"data"][@"adpicname"]];
-             NSLog(@"%@",_lauchStr);
+             //NSLog(@"%@",_lauchStr);
          }
         else
         {
@@ -176,10 +144,16 @@
 
 - (void)goMap
 {
-    MapViewController *MVC = [[MapViewController alloc]init];
-    [self.navigationController pushViewController:MVC animated:YES];
-    
-    AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+     AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
+    MapViewController *mapVC = [[MapViewController alloc]init];
+//     UINavigationController *nav = (UINavigationController *)appdel.drawerController.centerViewController;
+//    NSLog(@"-----%@",nav.viewControllers);
+//    mapVC = nav.viewControllers[0];
+//    mapVC.checkUnfinished = @"isCheck";
+    //[self.navigationController pushViewController:mapVC animated:YES];
+    mapVC.checkUnfinished = @"isCheck";
+    appdel.mapViewController = mapVC;
+    [appdel setDrawwer];
     appdel.window.tintColor = [UIColor blueColor];
     appdel.window.rootViewController = appdel.drawerController;
 }
@@ -188,6 +162,11 @@
 {
     LoginViewController *LoginVC = [[LoginViewController alloc]init];
     [self.navigationController pushViewController:LoginVC animated:YES];
+}
+
+- (void)callBack
+{
+    
 }
 
 //- (void)pushJoin

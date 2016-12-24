@@ -19,6 +19,10 @@ static BOOL isProduction = FALSE;
 
 @property (strong, nonatomic) UIWindow *window;
 @property (nonatomic,strong)MMDrawerController *drawerController;
+@property (nonatomic,strong)LeftSliderViewController *leftViewController;
+@property (nonatomic,strong)MapViewController *mapViewController;
+
+- (void)setDrawwer;
 
 @end
 

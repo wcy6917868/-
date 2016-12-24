@@ -19,6 +19,7 @@
 #import "NetManager.h"
 #import "Ultitly.h"
 #import "AppDelegate.h"
+#import <MBProgressHUD.h>
 #define SCREENW [UIScreen mainScreen].bounds.size.width
 #define SCREENH [UIScreen mainScreen].bounds.size.height
 #define SCREENW_RATE SCREENW/375
@@ -28,11 +29,13 @@
 #define arriveStartAPI @"http://115.29.246.88:9999/core/orderarrive"
 #define getTheCoustomAPI @"http://115.29.246.88:9999/core/orderget"
 #define coustomArriveAPI @"http://115.29.246.88:9999/core/orderreach"
+#define checkUnfinishedOrder @"http://115.29.246.88:9999/openapp/restorder"
+#define refreshOrder @"http://115.29.246.88:9999/openapp/amountorder"
 
 
 @interface MapViewController ()<AMapLocationManagerDelegate,AMapSearchDelegate,MAMapViewDelegate,UIApplicationDelegate,MAMapViewDelegate,UIAlertViewDelegate>
 {
-    __weak MapViewController *weakSelf ;
+    __weak MapViewController *weakSelf;
     UIView *getCoustomV;
     UILabel *NumL;
     UIImageView *callImage;
@@ -43,14 +46,17 @@
     UIButton *sureBtn;
     BOOL isOpen;
     BOOL isRob;
+    int  minutes;
+    int  seconds;
     NSTimer *timer;
+    NSTimer *waitTimer;
     NSTimer *robOrderTimer;
     
 }
 @property (nonatomic,strong)AMapLocationManager *locationManger;
 @property (nonatomic,strong)UIButton *getListBtn;
 @property (nonatomic,assign)CLLocationCoordinate2D startCoordinate;
-@property (nonatomic,assign) CLLocationCoordinate2D destinationCoordinate;
+@property (nonatomic,assign)CLLocationCoordinate2D destinationCoordinate;
 @property (nonatomic,strong)AMapSearchAPI *search;
 @property (nonatomic,strong)AMapRoute *route;
 @property (nonatomic,assign)NSInteger currentCourse;
@@ -83,6 +89,8 @@
     AppDelegate *appdle = (AppDelegate *)[[UIApplication sharedApplication]delegate];
     [appdle.drawerController setOpenDrawerGestureModeMask:MMOpenDrawerGestureModeAll];
     [appdle.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeAll];
+     [self.locationManger startUpdatingLocation];
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -99,7 +107,7 @@
     [appdle.drawerController setCloseDrawerGestureModeMask:MMCloseDrawerGestureModeNone];
     
     [timer invalidate];
-    timer = nil;
+     timer = nil;
 }
 
 - (void)viewDidLoad
@@ -108,11 +116,10 @@
     [self configNav];
     [self uiConfig];
     [self configLocationManager];
-    [self.locationManger startUpdatingLocation];
+    [self checkLastOrder];
     [self chuanzhi];
     [self reset];
     
-
 }
 
 - (void)configNav
@@ -143,14 +150,88 @@
     [rightBtn setBackgroundImage:[UIImage imageNamed:@"sound1"] forState:UIControlStateNormal];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:rightBtn];
     
+}
+
+- (void)checkLastOrder
+{
     
+    if (!self.str)
+    {
+        [self isThereUnfinished];
+    }
+    
+}
+
+- (void)isThereUnfinished
+{
+    self.checkUnfinished = @"noCheck";
+    NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *driverID = [ud objectForKey:@"userid"];
+    [paraDic setObject:driverID forKey:@"id"];
+    [[NetManager shareManager]requestUrlPost:checkUnfinishedOrder andParameter:paraDic withSuccessBlock:^(id data)
+    {
+        if ([data[@"status"]isEqualToString:@"9000"])
+        {
+            NSDictionary *tempDic = data[@"data"][@"order"];
+           
+if ([[NSString stringWithFormat:@"%@",tempDic[@"status"]]isEqualToString:@"2"])
+                {
+                    
+                    self.destinationCoordinate = CLLocationCoordinate2DMake([tempDic[@"lat"] floatValue],[tempDic[@"lng"] floatValue]);
+                    _outsetStr = tempDic[@"odetail"];
+                    _finishStr = tempDic[@"fdetail"];
+                    _coustomNumStr = tempDic[@"mobile"];
+                    [Ultitly shareInstance].fareCost = tempDic[@"mileage"];
+                    [Ultitly shareInstance].orderID = tempDic[@"id"];
+                    [self configNetStepUI];
+                }
+                else if ([[NSString stringWithFormat:@"%@",tempDic[@"status"]]isEqualToString:@"3"])
+                {
+                    
+                    self.destinationCoordinate = CLLocationCoordinate2DMake([tempDic[@"lat"] floatValue],[tempDic[@"lng"] floatValue]);
+                    _outsetStr = tempDic[@"odetail"];
+                    _finishStr = tempDic[@"fdetail"];
+                    _coustomNumStr = tempDic[@"mobile"];
+                    [Ultitly shareInstance].fareCost = tempDic[@"mileage"];
+                    [Ultitly shareInstance].orderID = tempDic[@"id"];
+                    [self configNetStepUI];
+                    [weakSelf arriveStartPlace];
+                }
+                else if ([[NSString stringWithFormat:@"%@",tempDic[@"status"]]isEqualToString:@"4"])
+                {
+                   
+                    self.destinationCoordinate = CLLocationCoordinate2DMake([tempDic[@"lat"] floatValue],[tempDic[@"lng"] floatValue]);
+                    _outsetStr = tempDic[@"odetail"];
+                    _finishStr = tempDic[@"fdetail"];
+                    _coustomNumStr = tempDic[@"mobile"];
+                    [Ultitly shareInstance].fareCost = tempDic[@"mileage"];
+                    [Ultitly shareInstance].orderID = tempDic[@"id"];
+                    [self configNetStepUI];
+                    [weakSelf arriveStartPlace];
+                    [weakSelf getCostom];
+            
+                 }
+            }
+        else
+        {
+            
+        }
+            
+    }
+    andFailedBlock:^(NSError *error)
+    {
+        
+    }];
 }
 
 - (void)uiConfig
 {
+    minutes = 0;
+    seconds = 0;
     
     [AMapServices sharedServices].apiKey = @"02708ec6ac84471c617809939d2a6885";
-    weakSelf = self;
+     weakSelf = self;
     _mapView = [[MAMapView alloc]initWithFrame:self.view.bounds];
     _mapView.delegate = self;
     _mapView.showsUserLocation = YES;
@@ -167,7 +248,7 @@
     [_getListBtn setTitleColor:RGB(255, 255, 255) forState:UIControlStateNormal];
     _getListBtn.titleLabel.font = [UIFont systemFontOfSize:21*SCREENW_RATE];
     _getListBtn.layer.masksToBounds = YES;
-    _getListBtn.layer.cornerRadius = 5;
+    _getListBtn.layer.cornerRadius = 5.0f*SCREENW_RATE;
     [_getListBtn addTarget:self action:@selector(getList:) forControlEvents:UIControlEventTouchUpInside];
     [self.view insertSubview:_getListBtn aboveSubview:_mapView];
     
@@ -192,6 +273,7 @@
     self.destinationCoordinate  =  CLLocationCoordinate2DMake(_destinationLat.floatValue, _destinationlng.floatValue);
     
   timer =  [NSTimer scheduledTimerWithTimeInterval:10.0f target:self selector:@selector(delayMethod) userInfo:nil repeats:YES];
+    
 }
 
 #pragma mark 设置定位管理
@@ -205,7 +287,6 @@
 #pragma mark 获取定位位置的经纬度
 - (void)amapLocationManager:(AMapLocationManager *)manager didUpdateLocation:(CLLocation *)location
 {
-
     self.startCoordinate = CLLocationCoordinate2DMake(location.coordinate.latitude, location.coordinate.longitude);
     _diriverLatitude = [NSString stringWithFormat:@"%f",location.coordinate.latitude];
     _diriverLontitude = [NSString stringWithFormat:@"%f",location.coordinate.longitude];
@@ -213,7 +294,6 @@
     [Ultitly shareInstance].beginLat = _diriverLatitude;
     [Ultitly shareInstance].beginLng = _diriverLontitude;
     
-   
 }
 
 #pragma mark 设置定位图标
@@ -240,8 +320,7 @@
 - (void)routePlanning
 {
     AMapDrivingRouteSearchRequest *request = [[AMapDrivingRouteSearchRequest alloc]init];
-  
-
+    //出发地
     request.origin = [AMapGeoPoint locationWithLatitude:self.startCoordinate.latitude longitude:self.startCoordinate.longitude];
     //目的地
     request.destination = [AMapGeoPoint locationWithLatitude:self.destinationCoordinate.latitude longitude:self.destinationCoordinate.longitude];
@@ -252,7 +331,7 @@
 - (void)checkPath
 {
     AMapDrivingRouteSearchRequest *request = [[AMapDrivingRouteSearchRequest alloc]init];
-
+    //出发地
     request.origin = [AMapGeoPoint locationWithLatitude:_startLat.floatValue longitude:_startLng.floatValue];
     //目的地
     request.destination = [AMapGeoPoint locationWithLatitude:_destinationLat.floatValue longitude:_destinationlng.floatValue];
@@ -280,7 +359,7 @@
         _pathPolylines = nil;
         
         _pathPolylines = [self polinesForPath:response.route.paths[0]];
-        NSLog(@"%@",response.route.paths[0]);
+        //NSLog(@"%@",response.route.paths[0]);
         
         [_mapView addOverlays:_pathPolylines];
         
@@ -363,7 +442,7 @@
         //初始化一个路线类型的view
         MAPolylineRenderer *polygonView = [[MAPolylineRenderer alloc] initWithPolyline:overlay];
         //设置线宽颜色等
-        polygonView.lineWidth = 8.f;
+        polygonView.lineWidth = 8.0f;
         polygonView.strokeColor = [UIColor colorWithRed:0.015 green:0.658 blue:0.986 alpha:1.000];
         polygonView.fillColor = [UIColor colorWithRed:0.940 green:0.771 blue:0.143 alpha:0.800];
         polygonView.lineJoin = kCGLineJoinRound;//连接类型
@@ -433,6 +512,7 @@
         [self presentViewController:alertC animated:YES completion:nil];
     }
 }
+
 #pragma mark 抢单
 - (void)getList:(UIButton *)listBtn
 {
@@ -464,7 +544,7 @@
     [paraDic setObject:_diriverLontitude forKey:@"lng"];
     [[NetManager shareManager]requestUrlPost:makeAnOrderAPI andParameter:paraDic withSuccessBlock:^(id data)
      {
-         //_getListBtn.userInteractionEnabled = YES;
+         
          if ([data[@"status"]isEqualToString:@"9000"])
          {
              NSLog(@"%@",data);
@@ -483,7 +563,7 @@
          }
         
      }
-                andFailedBlock:^(NSError *error)
+            andFailedBlock:^(NSError *error)
      {
          
      }];
@@ -506,7 +586,6 @@
                 BVC.driverLng = _diriverLontitude;
                 BVC.productType = _productType;
                 BVC.useTime = _useTime;
-    
                 [BVC uiConfig];
                 
                 [self presentViewController:BVC animated:YES completion:^{
@@ -531,8 +610,36 @@
         AppDelegate *appdel = (AppDelegate*)[[UIApplication sharedApplication]delegate];
         [appdel.drawerController openDrawerSide:MMDrawerSideLeft animated:YES completion:^(BOOL finished)
         {
-            
+            NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+            NSString *driverID = [ud objectForKey:@"userid"];
+            NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
+            [paraDic setObject:driverID forKey:@"id"];
+            [[NetManager shareManager]requestUrlPost:refreshOrder andParameter:paraDic withSuccessBlock:^(id data)
+            {
+                if ([data[@"status"]isEqualToString:@"9000"])
+                {
+                    [Ultitly shareInstance].myOrder = [NSString stringWithFormat:@"%@",data[@"data"][@"myorder"]];
+                    [Ultitly shareInstance].allOrder = [NSString stringWithFormat:@"%@",data[@"data"][@"allorder"]];
+                    LeftSliderViewController *leftVC = [[LeftSliderViewController alloc]init];
+                    UINavigationController *nav = (UINavigationController *)appdel.drawerController.leftDrawerViewController;
+                    leftVC = nav.viewControllers[0];
+                    [leftVC.tableV reloadData];
+                }
+                else
+                {
+                    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"提示" message:data[@"msg"] preferredStyle:UIAlertControllerStyleAlert];
+                    UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了" style:UIAlertActionStyleCancel handler:nil];
+                    [alertC addAction:action];
+                    [self presentViewController:alertC animated:YES completion:nil];
+
+                }
+            }
+            andFailedBlock:^(NSError *error)
+            {
+                
+            }];
         }];
+        
         isOpen = YES;
     }
     else if (clickBtn.selected == YES)
@@ -595,10 +702,10 @@
     blueV.image = [UIImage imageNamed:@"blue0"];
     [view1 addSubview:blueV];
     
-    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+5*SCREENW_RATE, 0,300*SCREENW_RATE, 50*SCREENW_RATE)];
+    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+5*SCREENW_RATE, 0,270*SCREENW_RATE, 50*SCREENW_RATE)];
     shangcheL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     shangcheL.textColor = RGB(68, 68, 68);
-    shangcheL.text = [NSString stringWithFormat:@"  上车地点 : %@",_outsetStr];
+    shangcheL.text = [NSString stringWithFormat:@"%@",_outsetStr];
     [view1 addSubview:shangcheL];
     
     UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(shangcheL.frame), 210*SCREENW_RATE, 1)];
@@ -610,15 +717,15 @@
     redV.image = [UIImage imageNamed:@"red0"];
     [view1 addSubview:redV];
     
-    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 300*SCREENW_RATE, 50*SCREENW_RATE)];
+    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 270*SCREENW_RATE, 50*SCREENW_RATE)];
     daodaL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     daodaL.textColor = RGB(68, 68, 68);
-    daodaL.text = [NSString stringWithFormat:@"  到达地点 : %@",_finishStr];
+    daodaL.text = [NSString stringWithFormat:@"%@",_finishStr];
     [view1 addSubview:daodaL];
     
     callImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 64*SCREENW_RATE, 64*SCREENW_RATE)];
     callImage.image = [UIImage imageNamed:@"dianhua1"];
-    callImage.center = CGPointMake(SCREENW - 42*SCREENW_RATE, 60*SCREENW_RATE);
+    callImage.center = CGPointMake(SCREENW - 43*SCREENW_RATE, 56*SCREENW_RATE);
     callImage.userInteractionEnabled = YES;
     UITapGestureRecognizer *callTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(callCustom)];
     [callImage addGestureRecognizer:callTap];
@@ -677,10 +784,10 @@
     blueV.image = [UIImage imageNamed:@"blue0"];
     [view1 addSubview:blueV];
     
-    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+5*SCREENW_RATE, 0,300*SCREENW_RATE, 50*SCREENW_RATE)];
+    UILabel *shangcheL  = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(blueV.frame)+5*SCREENW_RATE, 0,270*SCREENW_RATE,50*SCREENW_RATE)];
     shangcheL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     shangcheL.textColor = RGB(68, 68, 68);
-    shangcheL.text = [NSString stringWithFormat:@"  上车地点 : %@",_outsetStr];
+    shangcheL.text = [NSString stringWithFormat:@"%@",_outsetStr];
     [view1 addSubview:shangcheL];
     
     UIView *lineV = [[UIView alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(shangcheL.frame), 210*SCREENW_RATE, 1)];
@@ -692,15 +799,15 @@
     redV.image = [UIImage imageNamed:@"red0"];
     [view1 addSubview:redV];
     
-    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 300*SCREENW_RATE, 50*SCREENW_RATE)];
+    UILabel *daodaL = [[UILabel alloc]initWithFrame:CGRectMake(shangcheL.frame.origin.x, CGRectGetMaxY(lineV.frame), 270*SCREENW_RATE, 50*SCREENW_RATE)];
     daodaL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
     daodaL.textColor = RGB(68, 68, 68);
-    daodaL.text = [NSString stringWithFormat:@"  到达地点 : %@",_finishStr];
+    daodaL.text = [NSString stringWithFormat:@"%@",_finishStr];
     [view1 addSubview:daodaL];
     
     callImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 64*SCREENW_RATE, 64*SCREENW_RATE)];
     callImage.image = [UIImage imageNamed:@"dianhua1"];
-    callImage.center = CGPointMake(SCREENW - 42*SCREENW_RATE, 60*SCREENW_RATE);
+    callImage.center = CGPointMake(SCREENW - 42*SCREENW_RATE, 56*SCREENW_RATE);
     callImage.userInteractionEnabled = YES;
     UITapGestureRecognizer *callTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(callCustom)];
     [callImage addGestureRecognizer:callTap];
@@ -747,9 +854,11 @@
 
 - (void)arriveStart:(UIButton *)arriveBtn
 {
+    
     sureBtn.userInteractionEnabled = NO;
     UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定到达上车地点吗?" preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
         NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
         NSString *userid = [ud objectForKey:@"userid"];
@@ -759,6 +868,7 @@
         [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
         [[NetManager shareManager]requestUrlPost:arriveStartAPI andParameter:paraDic withSuccessBlock:^(id data)
         {
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
             sureBtn.userInteractionEnabled = YES;
              if ([data[@"status"]isEqualToString:@"9000"])
              {
@@ -766,6 +876,7 @@
                  [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
                  [sureBtn addTarget:self action:@selector(getCoustom:) forControlEvents:UIControlEventTouchUpInside];
                  [sureBtn setTitle:@"接到乘客 >" forState:UIControlStateNormal];
+                 waitTimer = [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(waitTime) userInfo:nil repeats:YES];
              }
              else
              {
@@ -776,11 +887,10 @@
                  }];
                  [alertC addAction:action];
                  [self presentViewController:alertC animated:YES completion:nil];
-                 
              }
-            
         }
         andFailedBlock:^(NSError *error) {
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
         sureBtn.userInteractionEnabled = YES;
         }];
 }];
@@ -791,7 +901,26 @@
     [sureAlert addAction:cancelAction];
     [sureAlert addAction:alertAction];
     [weakSelf presentViewController:sureAlert animated:YES completion:nil];
+}
+//等待乘客时间计算
+- (void)waitTime
+{
+    seconds ++;
+    if (seconds == 60)
+    {
+        minutes ++;
+        seconds = 0;
+    }
     
+ NumL.text = [NSString stringWithFormat:@"%02d : %02d",minutes,seconds];
+}
+
+- (void)arriveStartPlace
+{
+        sureBtn.backgroundColor = RGB(37, 155, 255);
+        [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
+        [sureBtn addTarget:self action:@selector(getCoustom:) forControlEvents:UIControlEventTouchUpInside];
+        [sureBtn setTitle:@"接到乘客 >" forState:UIControlStateNormal];
 }
 #pragma mark 接到乘客
 - (void)getCoustom:(UIButton *)getBtn
@@ -800,30 +929,32 @@
     sureBtn.userInteractionEnabled = NO;
     UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定接到乘客吗?" preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
         NSString *userid = [ud objectForKey:@"userid"];
         NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
         [paraDic setObject:userid forKey:@"id"];
         [paraDic setObject:_diriverLatitude forKey:@"lat"];
-        [paraDic setObject:_destinationlng forKey:@"lng"];
+        [paraDic setObject:_diriverLontitude forKey:@"lng"];
         [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
         
         [[NetManager shareManager]requestUrlPost:getTheCoustomAPI andParameter:paraDic withSuccessBlock:^(id data)
          {
-             //NSLog(@"%@",data);
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
              sureBtn.userInteractionEnabled = YES;
              
              if ([data[@"status"]isEqualToString:@"9000"])
              {
+                 [waitTimer invalidate];
+                  waitTimer = nil;
+                 
+                 minutes = 0;
+                 seconds = 0;
+                 
                  UIView *view = [_mapView viewWithTag:500];
                  [sureBtn setTitle:@"到达目的地 >" forState:UIControlStateNormal];
                  [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
                  [sureBtn addTarget:weakSelf action:@selector(arrive:) forControlEvents:UIControlEventTouchUpInside];
-                 NSString *str = @"已行 2.2公里";
-                 NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
-                 [str1 addAttribute:NSForegroundColorAttributeName value:RGB(254, 71, 80) range:NSMakeRange(3, 3)];
-                 NumL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
-                 NumL.attributedText = str1;
                  callImage.image = [UIImage imageNamed:@"jianbian0"];
                  UILabel *mileageCost = [[UILabel alloc]init];
                  mileageCost.frame = callImage.frame;
@@ -831,7 +962,6 @@
                  mileageCost.numberOfLines = 2;
                  mileageCost.font = [UIFont systemFontOfSize:16*SCREENW_RATE];NSString *mileageCostStr = [NSString stringWithFormat:@"%@\n元",[Ultitly shareInstance].fareCost];
                  mileageCost.text = mileageCostStr;
-                 //NSLog(@"%@",mileageCost.text);
                  mileageCost.textAlignment = NSTextAlignmentCenter;
                  [view addSubview:mileageCost];
                  
@@ -848,7 +978,7 @@
          }
                     andFailedBlock:^(NSError *error)
          {
-             NSLog(@"%@",error);
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
              sureBtn.userInteractionEnabled = YES;
          }];
 
@@ -860,12 +990,29 @@
     [sureAlert addAction:cancelAction];
     [sureAlert addAction:alertAction];
     [weakSelf presentViewController:sureAlert animated:YES completion:nil];
-
-    
-    
 }
 
-
+- (void)getCostom
+{
+    UIView *view = [_mapView viewWithTag:500];
+    [sureBtn setTitle:@"到达目的地 >" forState:UIControlStateNormal];
+    [sureBtn removeTarget:nil action:nil forControlEvents:UIControlEventTouchUpInside];
+    [sureBtn addTarget:weakSelf action:@selector(arrive:) forControlEvents:UIControlEventTouchUpInside];
+    NSString *str = @"已行 2.2公里";
+    NSMutableAttributedString *str1 = [[NSMutableAttributedString alloc]initWithString:str];
+    [str1 addAttribute:NSForegroundColorAttributeName value:RGB(254, 71, 80) range:NSMakeRange(3, 3)];
+    NumL.font = [UIFont systemFontOfSize:16*SCREENW_RATE];
+    NumL.attributedText = str1;
+    callImage.image = [UIImage imageNamed:@"jianbian0"];
+    UILabel *mileageCost = [[UILabel alloc]init];
+    mileageCost.frame = callImage.frame;
+    mileageCost.textColor = RGB(255, 255, 255);
+    mileageCost.numberOfLines = 2;
+    mileageCost.font = [UIFont systemFontOfSize:16*SCREENW_RATE];NSString *mileageCostStr = [NSString stringWithFormat:@"%@\n元",[Ultitly shareInstance].fareCost];
+    mileageCost.text = mileageCostStr;
+    mileageCost.textAlignment = NSTextAlignmentCenter;
+    [view addSubview:mileageCost];
+}
 
 #pragma mark 到达目的地
 - (void)arrive:(UIButton *)selectedBtn
@@ -873,6 +1020,7 @@
     sureBtn.userInteractionEnabled = NO;
     UIAlertController *sureAlert = [UIAlertController alertControllerWithTitle:@"确定" message:@"您确定到达目的地吗?" preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
         NSString *userID = [ud objectForKey:@"userid"];
         NSMutableDictionary *paraDic = [NSMutableDictionary dictionary];
@@ -880,10 +1028,10 @@
         [paraDic setObject:[Ultitly shareInstance].orderID forKey:@"oid"];
         [paraDic setObject:_diriverLatitude forKey:@"lat"];
         [paraDic setObject:_diriverLontitude forKey:@"lng"];
-        NSLog(@"%@",paraDic);
+        
         [[NetManager shareManager]requestUrlPost:coustomArriveAPI andParameter:paraDic withSuccessBlock:^(id data)
          {
-             //NSLog(@"%@",data);
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
              if ([data[@"status"]isEqualToString:@"9000"])
              {
                  selectedBtn.userInteractionEnabled = YES;
@@ -913,6 +1061,7 @@
          }
                 andFailedBlock:^(NSError *error)
          {
+             [MBProgressHUD hideHUDForView:self.view animated:YES];
              selectedBtn.userInteractionEnabled = YES;
          }];
 
